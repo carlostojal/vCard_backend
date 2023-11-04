@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    
+
     public function login(Request $request){
         $user = User::where('email', $request->email)->first();
         if($user){
@@ -19,7 +20,7 @@ class UserController extends Controller
                         'name' => $user->name,
                         'email' => $user->email,
                     ],
-                    
+
                 ]);
             }else{
                 return response()->json([
@@ -42,28 +43,35 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $user = User::where('email', $request->email)->first();
-        if(!$user){
-            $user = new User();
-            $user->name = $request->name;
-            $user->email = $request->email;
+         $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8',
+        ]);
 
-            $user->password = Hash::make($request->password);
-            $user->save();
-
+        if ($validator->fails()) {
             return response()->json([
-                'status' => 'sucess',
-                'message' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-            ]);
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
         }
 
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $token =  $user->createToken('API Token')->accessToken;
+        $user->save();
         return response()->json([
-            'status' => 'error',
-            'message' => 'The user already exists'
-        ]);
+            'status' => 'success',
+            'message' => 'User registered successfully',
+            'data' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'token' => $token
+            ],
+        ], 201); // HTTP 201 Created
     }
 
     /**
