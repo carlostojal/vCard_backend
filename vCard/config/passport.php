@@ -59,4 +59,12 @@ return [
         'secret' => env('PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET'),
     ],
 
+    'grant_types' => [
+    'password' => [
+        'provider' => 'users',
+        'table' => 'oauth_access_tokens',
+        'expire_in' => 3600,
+    ],
+],
+
 ];

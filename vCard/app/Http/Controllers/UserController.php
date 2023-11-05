@@ -61,8 +61,8 @@ class UserController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
-        $token =  $user->createToken('API Token')->accessToken;
         $user->save();
+        $token =  $user->createToken('API Token')->accessToken;
         return response()->json([
             'status' => 'success',
             'message' => 'User registered successfully',
