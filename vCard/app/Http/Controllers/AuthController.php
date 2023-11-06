@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-
+use App\Http\Controllers\UserController;
 class AuthController extends Controller
 {
     private function passportAuthenticationData($username, $password) {
@@ -23,7 +23,7 @@ class AuthController extends Controller
 
     public function login(Request $request) {
 
-        $credentials = request(['email', 'name', 'phone_number', 'password']);
+        $credentials = request(['email', 'name', 'password']);
         if (empty($credentials['password'])) {
             return response()->json(['error' => 'Password is required'], 400);
         }
@@ -32,14 +32,25 @@ class AuthController extends Controller
         //     return response()->json(['error' => 'Credentials are required'], 400);
         // }
         //
+        $flag = false;
         if (!Auth::attempt($credentials)) {
             $credentials = request(['name', 'password']);
-            if (!Auth::attempt($credentials)) {
+            if($request->has('phone_number')){
+                $controller = new UserController();
+                $user = $controller->getUserByPhoneNumber($request->phone_number);
+                $flag = true;
+            }else if (!Auth::attempt($credentials)) {
                 return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
             }
         }
-        $user = $request->user();
 
+        if(!$flag) {
+            $user = $request->user();
+        }
+
+        if($user == null) {
+            return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
+        }
         $oauthData = $this->passportAuthenticationData($user->email, $request->password);
         $token =  $user->createToken('API Token')->accessToken;
         return response()->json([

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\UserPhoneNumber;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -96,5 +97,18 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function getUserByPhoneNumber($phoneNumber)
+    {
+        $userPhoneNumber = UserPhoneNumber::where('phone_number', $phoneNumber)->first();
+
+        if ($userPhoneNumber) {
+            $user = $userPhoneNumber->user; // Assuming you have a relationship set up in UserPhoneNumber model
+            return $user;
+        }
+
+        // return response()->json(['message' => 'User not found'], 404);
+        return null;
     }
 }

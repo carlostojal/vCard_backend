@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
-
+use App\Http\Controllers\UserPhoneNumberController;
 //Rotas específicas
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [UserController::class, 'store']);
@@ -15,3 +15,5 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('users', UserController::class)->except(['store']);
     Route::post('logout', [AuthController::class, 'logout']);
 });
+Route::resource('users-phone-numbers', UserPhoneNumberController::class);
+
