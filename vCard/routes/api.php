@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserPhoneNumberController;
+use App\Http\Controllers\VCardController;
+
 //Rotas específicas
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [UserController::class, 'store']);
@@ -17,3 +19,5 @@ Route::middleware('auth:api')->group(function () {
 });
 Route::resource('users-phone-numbers', UserPhoneNumberController::class);
 
+
+Route::apiResource('vcards', VCardController::class);
