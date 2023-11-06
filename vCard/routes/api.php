@@ -13,4 +13,5 @@ Route::post('register', [UserController::class, 'store']);
 Route::middleware('auth:api')->group(function () {
     //All routes inside need to be authenticated
     Route::resource('users', UserController::class)->except(['store']);
+    Route::post('logout', [AuthController::class, 'logout']);
 });
