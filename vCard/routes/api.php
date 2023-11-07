@@ -20,4 +20,4 @@ Route::middleware('auth:api')->group(function () {
 Route::resource('users-phone-numbers', UserPhoneNumberController::class);
 
 
-Route::apiResource('vcards', VCardController::class);
+Route::resource('vcards', VCardController::class);

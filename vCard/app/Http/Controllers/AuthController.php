@@ -8,13 +8,14 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     private function passportAuthenticationData($username, $password) {
          return [
              'grant_type' => 'password',
-             'client_id' => 15,
-             'client_secret' => 'ozFy7TDihpxrOkZjvkG8Y0HX0McEhk5P3GFVNwqt',
+             'client_id' => 2,
+             'client_secret' => 'b2gldT8SLjCW71g2hjP2Z0fulOyN8QtoBmYR45xE',
              'username' => $username,
              'password' => $password,
              'scope' => '',
@@ -48,7 +49,7 @@ class AuthController extends Controller
             $user = $request->user();
         }
 
-        if($user == null) {
+        if($user == null || !Hash::check($request->password, $user->password)) {
             return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
         }
         $oauthData = $this->passportAuthenticationData($user->email, $request->password);
@@ -98,7 +99,6 @@ class AuthController extends Controller
         Passport::enableImplicitGrant();
         Passport::enablePasswordGrant();
         Passport::useClientModel(User::class);
-
     }
 
 }

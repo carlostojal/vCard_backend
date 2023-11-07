@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Vcard;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class VCardController extends Controller
 {
@@ -17,11 +18,14 @@ class VCardController extends Controller
     }
 
 
-    public function calculate_password(){
+    public function calculate_password(Request $request){
         
-        $user_password;
-        $phone_number;
+        //nao sei bem se é a junção com a password do user
+        $user_password = User::where('email', $request->email)->first()->password;
+        $phone_number = $request->phone_number;
+        $password = Hash::make($user_password . $phone_number);
 
+        return $password;
     }
 
 
@@ -37,20 +41,19 @@ class VCardController extends Controller
             if($request->photo_url)
                 $vcard->photo_url = $request->photo_url;
             $vcard->confirmation_code = $request->confirmation_code;
-            $vcard->blocked = $request->blocked;
-            $vcard->balance = $request->balance;
+            $vcard->blocked = 0;
+            $vcard->balance = 0;
             $vcard->max_debit = $request->max_debit;
 
-            $vcard->password = 
-
             //hash da pass e confirmation_code
+            $vcard->password = $this->calculate_password($request);
 
-            $vcard->save();
+            //$vcard->save();
 
             return response()->json([
                 'status' => 'sucess',
                 'message' => [
-                    $vcard
+                    $vcard //alterar para so enviar os dados necessarios (PINIA)
                 ]
             ]);
         }
