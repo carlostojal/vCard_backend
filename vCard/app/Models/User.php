@@ -16,9 +16,5 @@ class User extends Authenticatable
     // {
     //     return $this->where('name', $name)->first();
     // }
-    public function phoneNumbers()
-    {
-        return $this->hasMany(UserPhoneNumber::class, 'user_id');
-    }
 
 }
