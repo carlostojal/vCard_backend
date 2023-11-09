@@ -62,35 +62,27 @@ class AuthController extends Controller
             ], 404);
         }
         if(Hash::check($request->password, $vcard->password)){
-        // dd(Auth()->guard('vcard')->getProvider(), Auth::getProvider());
-        Auth::guard('vcard')->setUser($vcard);
-        // dd(Auth::guard('vcard')->user());
-        // if(Auth::guard('vcard')->attempt($credentials)){
-        // if (auth('vcard')->attempt($credentials)) {
 
-            $vcard = Auth::guard('vcard')->user();
+            $oauthData = $this->AddAuthDataVcard($request->phone_number, $request->password);
+            request()->request->add($oauthData);
 
-            // $oauthData = $this->AddAuthDataVcard($request->phone_number, $request->password);
-            // request()->request->add($oauthData);
+            $request = Request::create('http://localhost:80/oauth/token', 'POST');
+            $response = Route::dispatch($request);
+            $errorCode = $response->getStatusCode();
+            if ($errorCode != 200) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Not able to authenticate, token was not able to be produced',
+                ], 201);
+            }
 
-            // $request = Request::create('http://localhost:80/oauth/token', 'POST');
-            // $response = Route::dispatch($request);
-            // $errorCode = $response->getStatusCode();
-            // if ($errorCode != 200) {
-            //     return response()->json([
-            //         'status' => 'error',
-            //         'message' => 'Not able to authenticate, token was not able to be produced',
-            //         'errors' => $response->getContent(),
-            //     ], 201);
-            // }
-
-            // $responseData = json_decode($response->getContent(), true);
-            // $token = $responseData;
+            $responseData = json_decode($response->getContent(), true);
+            $token = $responseData;
             return response()->json([
                 'status' => 'success',
                 'message' => 'vCard User Logged successfully',
                 'data' => [
-                    "token" => $vcard->createToken('vCard Personal Access Token')->accessToken
+                    $responseData
                 ],
             ], 201);
         }
