@@ -16,13 +16,23 @@ class Vcard extends Authenticatable
     protected $hidden = [
         'password', 'confirmation_code',
     ];
-    public function findForPassport($phone_number): Vcard
-    {
+
+
+    public function findForPassport($phone_number): Vcard {
         //This setups username field in post oauth/token
         return $this->where('phone_number', $phone_number)->first();
     }
-   public function getUserIdentifier()
-    {
-        return $this->phone_number;
+
+    public function getUserIdentifier() {
+        return $this->phone_number; //Passport needs to make the primary key mapping for tokens
+    }
+
+    public function getAuthIdentifier() {
+        return $this->phone_number; //Passport needs to make the primary key mapping for tokens
+    }
+
+
+    public function getAuthIdentifierName() {
+        return "phone_number";
     }
 }
