@@ -55,12 +55,9 @@ class VCardController extends Controller
             $vcard->name = $request->name;
             $vcard->phone_number = $request->phone_number;
             $vcard->email = $request->email;
-            if($request->photo_url)
-                $vcard->photo_url = $request->photo_url;
+            $vcard->photo_url = $request->photo_url;
             $vcard->confirmation_code = Hash::make($request->confirmation_code);
             $vcard->blocked = 0;
-            $vcard->balance = 0;
-            $vcard->max_debit = 5000;
 
             //hash da pass e confirmation_code
             $vcard->password = Hash::make($request->password);
@@ -82,7 +79,7 @@ class VCardController extends Controller
 
     public function storeMobile(Request $request){
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|int|min:9|unique:vcards',
+            'phone_number' => 'required|int|min:9',
             'password' => 'required|min:8',
             'confirmation_code' => 'required|min:4',
         ]);
@@ -117,7 +114,7 @@ class VCardController extends Controller
 
             //hash da pass e confirmation_code
             $vcard->password = Hash::make($request->password);
-            $vcard->save();
+            //$vcard->save();
 
             return response()->json([
                 'status' => 'sucess',
