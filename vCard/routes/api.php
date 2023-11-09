@@ -19,6 +19,7 @@ Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
     Route::resource('users', VCardController::class)->except('store');
     Route::get('/testAdmin', function () {
+        return Auth::user();
         return 'You need to have a user admin token';
     });
     Route::post('logout', [AuthController::class, 'logout']);
@@ -28,6 +29,7 @@ Route::group(['middleware' => 'auth:vcard'], function () {
     //VCARD USERS ROUTES, TAES IS HERE
     Route::resource('vcards', VCardController::class)->except('store');
      Route::get('/testVcard', function () {
+        return Auth::user();
         return 'You need to have a vcard token';
     });
 
