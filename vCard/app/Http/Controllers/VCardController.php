@@ -24,11 +24,11 @@ class VCardController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|int|min:9|unique:vcards',
-            'password' => 'required|min:8',
+            'phone_number' => 'required|int|min:9',
+            'password' => 'required',
             'email' => 'required|email',
             'confirmation_code' => 'required|min:4',
-            'name' => 'required|string',
+            'name' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -114,12 +114,12 @@ class VCardController extends Controller
 
             //hash da pass e confirmation_code
             $vcard->password = Hash::make($request->password);
-            //$vcard->save();
+            $vcard->save();
 
             return response()->json([
                 'status' => 'sucess',
                 'message' => [
-                    $vcard //alterar para so enviar os dados necessarios (PINIA)
+                    $vcard //alterar para so enviar os dados necessarios
                 ]
             ]);
         }
