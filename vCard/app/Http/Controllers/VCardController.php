@@ -64,7 +64,7 @@ class VCardController extends Controller
             $vcard->save();
 
             return response()->json([
-                'status' => 'sucess',
+                'status' => 'success',
                 'message' => [
                     $vcard //alterar para so enviar os dados necessarios (PINIA)
                 ]
@@ -117,7 +117,7 @@ class VCardController extends Controller
             $vcard->save();
 
             return response()->json([
-                'status' => 'sucess',
+                'status' => 'success',
                 'message' => [
                     $vcard //alterar para so enviar os dados necessarios
                 ]
