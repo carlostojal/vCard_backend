@@ -3,39 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\UserPhoneNumber;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Models\User;
 
 class UserController extends Controller
 {
-
-    public function login(Request $request){
-        $user = User::where('email', $request->email)->first();
-        if($user){
-            if (Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'status' => 'sucess',
-                    'message' => [
-                        'name' => $user->name,
-                        'email' => $user->email,
-                    ],
-
-                ]);
-            }else{
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Incorrect password'
-                ]);
-            }
-        }else{
-            return response()->json([
-                'status' => 'error',
-                'message' => 'The user does not exist'
-            ]);
-        }
-    }
 
     public function index()
     {
@@ -68,8 +41,8 @@ class UserController extends Controller
             'status' => 'success',
             'message' => 'User registered successfully',
             'data' => [
-                'name' => $user->name,
-                'email' => $user->email,
+                // 'name' => $user->name,
+                // 'email' => $user->email,
                 'token' => $token
             ],
         ], 201); // HTTP 201 Created

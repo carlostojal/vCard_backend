@@ -9,83 +9,136 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Vcard;
+use App\Http\Middleware\VcardUserProvider;
+
 class AuthController extends Controller
 {
-    private function passportAuthenticationData($username, $password) {
-         return [
+    private function AddAuthDataVCard($phone, $password){
+        return [
+            'grant_type' => 'password',
+            'client_id' => env('VCARD_CLIENT_ID'),
+            'client_secret' => env('VCARD_CLIENT_SECRET'),
+            'username' => $phone,
+            'password' => $password,
+            'scope' => '',
+         ];
+    }
+
+
+    private function AddAuthDataUser($email, $password){
+        return [
              'grant_type' => 'password',
-             'client_id' => 2,
-             'client_secret' => 'b2gldT8SLjCW71g2hjP2Z0fulOyN8QtoBmYR45xE',
-             'username' => $username,
+             'client_id' => env('USER_CLIENT_ID'),
+             'client_secret' => env('USER_CLIENT_SECRET'),
+             'username' => $email,
              'password' => $password,
              'scope' => '',
          ];
     }
 
-    public function login(Request $request) {
+       public function loginVcard(Request $request){
+        //This Login is for vCard users from both TAES and DAD
+        $validator = Validator::make($request->all(), [
+            'phone_number' => 'required|int|min:9',
+            'password' => 'required|min:8',
+        ]);
 
-        $credentials = request(['email', 'name', 'password']);
-        if (empty($credentials['password'])) {
-            return response()->json(['error' => 'Password is required'], 400);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
         }
 
-        // if(!$credentials['email'] && empty($credentials['name']) && empty($credentials['phone_number'])){
-        //     return response()->json(['error' => 'Credentials are required'], 400);
-        // }
-        //
-        $flag = false;
-        if (!Auth::attempt($credentials)) {
-            $credentials = request(['name', 'password']);
-            if($request->has('phone_number')){
-                $controller = new UserController();
-                $user = $controller->getUserByPhoneNumber($request->phone_number);
-                $flag = true;
-            }else if (!Auth::attempt($credentials)) {
-                return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
+        $credentials = request(['phone_number', 'password']);
+        $vcard = Vcard::where('phone_number', $request->phone_number)->first();
+        if(!$vcard) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Login failed',
+                'errors' => 'Phone Number Not found',
+            ], 404);
+        }
+        if(Hash::check($request->password, $vcard->password)){
+
+            $oauthData = $this->AddAuthDataVcard($request->phone_number, $request->password);
+            request()->request->add($oauthData);
+
+            $request = Request::create('http://localhost:80/oauth/token', 'POST');
+            $response = Route::dispatch($request);
+            $errorCode = $response->getStatusCode();
+            if ($errorCode != 200) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Not able to authenticate, token was not able to be produced',
+                ], 201);
             }
+
+            $responseData = json_decode($response->getContent(), true);
+            $token = $responseData;
+            return response()->json([
+                'status' => 'success',
+                'message' => 'vCard User Logged successfully',
+                'data' => [
+                    $responseData
+                ],
+            ], 201);
         }
 
-        if(!$flag) {
-            $user = $request->user();
-        }
-
-        if($user == null || !Hash::check($request->password, $user->password)) {
-            return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
-        }
-        $oauthData = $this->passportAuthenticationData($user->email, $request->password);
-        $token =  $user->createToken('API Token')->accessToken;
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User Logged successfully',
-            'data' => [
-                'name' => $user->name,
-                'email' => $user->email,
-                'token' => $token
-            ],
-        ], 201); // HTTP 201 Created
-        //
-        // try {
-        //     $response = Http::timeout(50)->get('http://localhost:80/api/users/');
-        //     // $response = Http::timeout(5)->post('http://localhost:80/oauth/token', [
-        //     //     'grant_type' => 'password',
-        //     //     'client_id' => 15,
-        //     //     'client_secret' => 'ozFy7TDihpxrOkZjvkG8Y0HX0McEhk5P3GFVNwqt',
-        //     //     'username' => $user->email,
-        //     //     'password' => $request->password,
-        //     //     'scope' => '',
-        //     // ]);
-        //     // $request = Request::create('http://localhost:80/oauth/token', 'POST');
-        //
-        //     // Add the JSON data to the request body
-        //     // $response = Route::dispatch($request);
-        //
-        //     $errorCode = $response->getStatusCode();
-        //     $auth_server_response = json_decode((string) $response->content(), true);
-        //     return response()->json($auth_server_response, $errorCode);
-        // } catch (\Exception $e) {
-        //     return response()->json('Authentication has failed! LLLLL: '. $e->getMessage(), 401);
-        // }
+        return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
     }
+
+    public function loginUser(Request $request){
+        //This Login is only for Admins users from DAD
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|min:8',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        $credentials = $request->only('email', 'password');
+
+        if (auth()->guard('web')->attempt($credentials)) {
+            $user = auth()->guard('web')->user();
+
+            $oauthData = $this->AddAuthDataUser($request->email, $request->password);
+            request()->request->add($oauthData);
+
+            $request = Request::create('http://localhost:80/oauth/token', 'POST');
+            $response = Route::dispatch($request);
+            $errorCode = $response->getStatusCode();
+
+            if ($errorCode != 200) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Not able to authenticate, token was not able to be produced',
+                ], 201);
+            }
+
+            $responseData = json_decode($response->getContent(), true);
+            $token = $responseData;
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User Logged successfully',
+                'data' => [
+                    $responseData
+                ],
+            ], 201);
+        }
+        return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
+
+    }
+
+
     public function logout(Request $request) {
          $accessToken = $request->user()->token();
          $token = $request->user()->tokens->find($accessToken);

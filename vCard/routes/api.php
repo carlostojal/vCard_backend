@@ -4,20 +4,35 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserPhoneNumberController;
 use App\Http\Controllers\VCardController;
 
 //Rotas específicas
-Route::post('login', [AuthController::class, 'login']);
-Route::post('register', [UserController::class, 'store']);
+Route::post('/vcards/login', [AuthController::class, 'loginVcard']);
+Route::post('/users/login', [AuthController::class, 'loginUser']);
 
-//Rotas para CRUD
+Route::post('/vcards/', [VCardController::class, 'store']);
+Route::post('/vcards/mobile', [VCardController::class, 'storeMobile']);
+Route::post('/users/', [UserController::class, 'store']);
+
 Route::middleware('auth:api')->group(function () {
-    //All routes inside need to be authenticated
-    Route::resource('users', UserController::class)->except(['store']);
+    //api/user
+    //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
+    Route::resource('users', VCardController::class)->except('store');
+    Route::get('/testAdmin', function () {
+        return Auth::user();
+        return 'You need to have a user admin token';
+    });
     Route::post('logout', [AuthController::class, 'logout']);
 });
-Route::resource('users-phone-numbers', UserPhoneNumberController::class);
+Route::group(['middleware' => 'auth:vcard'], function () {
+    //api/vcard/
+    //VCARD USERS ROUTES, TAES IS HERE
+    Route::resource('vcards', VCardController::class)->except('store');
+     Route::get('/testVcard', function () {
+        return Auth::user();
+        return 'You need to have a vcard token';
+    });
 
+});
 
-Route::resource('vcards', VCardController::class);
+Route::resource('vcards', VCardController::class)->except('store');
