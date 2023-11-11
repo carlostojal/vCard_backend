@@ -71,17 +71,4 @@ class UserController extends Controller
     {
         //
     }
-
-    public function getUserByPhoneNumber($phoneNumber)
-    {
-        $userPhoneNumber = UserPhoneNumber::where('phone_number', $phoneNumber)->first();
-
-        if ($userPhoneNumber) {
-            $user = $userPhoneNumber->user; // Assuming you have a relationship set up in UserPhoneNumber model
-            return $user;
-        }
-
-        // return response()->json(['message' => 'User not found'], 404);
-        return null;
-    }
 }

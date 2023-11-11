@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use App\Models\Vcard;
 use App\Models\User;
 
@@ -136,6 +137,11 @@ class VCardController extends Controller
     public function show(string $phone)
     {
         return Vcard::where('phone_number', $phone)->first();
+    }
+
+    public function profile() {
+        $vcard = Auth::user();
+        return $vcard;
     }
 
     /**

@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Vcard;
 use App\Http\Middleware\VcardUserProvider;
+use App\Http\Controllers\UserController;
+use App\Models\Vcard;
 
 class AuthController extends Controller
 {
@@ -81,9 +81,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'vCard User Logged successfully',
-                'data' => [
-                    $responseData
-                ],
+                'data' => $responseData
             ], 201);
         }
 

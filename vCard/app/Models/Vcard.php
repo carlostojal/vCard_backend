@@ -14,7 +14,7 @@ class Vcard extends Authenticatable
     protected $guard = 'vcard';
 
     protected $hidden = [
-        'password', 'confirmation_code',
+        'password', 'confirmation_code', 'created_at', 'updated_at', 'deleted_at'
     ];
 
 
