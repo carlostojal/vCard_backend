@@ -15,6 +15,7 @@ Route::post('/vcards/mobile', [VCardController::class, 'storeMobile']);
 
 Route::post('/users/', [UserController::class, 'store']);
 
+
 Route::middleware('auth:api')->group(function () {
     //api/user
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
@@ -22,7 +23,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/testAdmin', function () {
         return 'You need to have a user admin token';
     });
-    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('/users/logout', [AuthController::class, 'logout']);
 });
 
 Route::middleware('auth:vcard')->group(function () {
@@ -34,7 +35,7 @@ Route::middleware('auth:vcard')->group(function () {
         return 'You need to have a vcard token';
     });
     Route::get('/profile', [VCardController::class, 'profile']);
-
+    Route::post('/vcards/logout', [AuthController::class, 'logout']);
 });
 
-Route::resource('vcards', VCardController::class)->except('store');
+// Route::resource('vcards', VCardController::class)->except('store');

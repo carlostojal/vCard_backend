@@ -138,8 +138,9 @@ class AuthController extends Controller
 
 
     public function logout(Request $request) {
-         $accessToken = $request->user()->token();
-         $token = $request->user()->tokens->find($accessToken);
+         $user = Auth::user();
+         $token = $user->token();
+         // $token = $user->tokens->find($accessToken);
          $token->revoke();
          $token->delete();
          return response(['msg' => 'Token revoked'], 200);
