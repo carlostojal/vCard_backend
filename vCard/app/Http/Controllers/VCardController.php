@@ -139,9 +139,79 @@ class VCardController extends Controller
         return Vcard::where('phone_number', $phone)->first();
     }
 
+    public function send(Request $request){
+          $validator = Validator::make($request->all(), [
+            'phone_number' => 'required|int|min:9',
+            'amount' => 'required|numeric',
+            'confirmation_code' => 'required|min:4',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        if($request->amount <= 0.00) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Amount needs to be greater than 0.00'
+            ], 400);
+        }
+        $vcard_origin = Auth::user();
+        if($vcard_origin->balance < $request->amount) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Amount needs to be lower than your balance'
+            ], 400);
+        }
+
+
+        if(!Hash::check($request->confirmation_code, $vcard_origin->confirmation_code)) {
+             return response()->json([
+                'status' => 'error',
+                'message' => 'Incorrect Confimation Code'
+            ], 400);
+        }
+
+        $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
+
+        if(!$vcard_destination) {
+             return response()->json([
+                'status' => 'error',
+                'message' => 'Phone number does not exist'
+            ], 400);
+        }
+
+        if($vcard_origin == $vcard_destination){
+              return response()->json([
+                'status' => 'error',
+                'message' => 'You cant send money to yourself'
+            ], 400);
+        }
+
+        $vcard_origin->balance -= $request->amount;
+        $vcard_destination->balance += $request->amount;
+        $vcard_origin->save();
+        $vcard_destination->save();
+        return response()->json([
+                'status' => 'success',
+                'message' => 'Transaction Successfuly'
+            ], 200);
+
+    }
+
     public function profile() {
+
         $vcard = Auth::user();
-        return $vcard;
+        // dd($vcard);
+        // return $vcard;
+        return response()->json([
+            'status' => 'success',
+            'data' => $vcard,
+        ], 200);
     }
 
     /**

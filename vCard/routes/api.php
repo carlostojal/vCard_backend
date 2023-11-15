@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VCardController;
+use App\Http\Controllers\TransactionController;
 
 //Rotas específicas
 Route::post('/vcards/login', [AuthController::class, 'loginVcard']);
@@ -15,6 +16,7 @@ Route::post('/vcards/mobile', [VCardController::class, 'storeMobile']);
 
 Route::post('/users/', [UserController::class, 'store']);
 
+// Route::get('/transactions/', [TransactionController::class, 'index']);
 
 Route::middleware('auth:api')->group(function () {
     //api/user
@@ -30,12 +32,14 @@ Route::middleware('auth:vcard')->group(function () {
 // Route::group(['middleware' => 'auth:vcard'], function () {
     //api/vcard/
     //VCARD USERS ROUTES, TAES IS HERE
+    Route::get('/vcards/profile', [VCardController::class, 'profile']);
+    Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::resource('vcards', VCardController::class)->except('store');
     Route::get('/testVcard', function () {
         return 'You need to have a vcard token';
     });
-    Route::get('/profile', [VCardController::class, 'profile']);
     Route::post('/vcards/logout', [AuthController::class, 'logout']);
+    Route::post('/vcards/send', [VcardController::class, 'send']);
 });
 
 // Route::resource('vcards', VCardController::class)->except('store');

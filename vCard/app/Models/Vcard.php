@@ -12,12 +12,24 @@ class Vcard extends Authenticatable
     use HasApiTokens, HasFactory;
 
     protected $guard = 'vcard';
+    protected $primaryKey = 'phone_number';
 
     protected $hidden = [
         'password', 'confirmation_code', 'created_at', 'updated_at', 'deleted_at'
     ];
 
+    //Relationships
 
+    public function categories(){
+        return $this->belongsToMany(Category::class);
+    }
+
+    public function transactions(){
+        return $this->hasMany(Transaction::class, 'vcard', 'phone_number');
+    }
+
+
+    //Passport
     public function findForPassport($phone_number): Vcard {
         //This setups username field in post oauth/token
         return $this->where('phone_number', $phone_number)->first();
