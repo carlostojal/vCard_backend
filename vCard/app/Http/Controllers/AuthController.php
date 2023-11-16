@@ -14,6 +14,15 @@ use App\Models\Vcard;
 
 class AuthController extends Controller
 {
+
+    // trim the country code from the phone number string, in case it is provided
+    function trimPortugueseCountryCode($phoneNumber) {
+        if (strpos($phoneNumber, '+351') === 0) {
+        $phoneNumber = substr($phoneNumber, 4);
+        }
+        return $phoneNumber;
+    }
+
     private function AddAuthDataVCard($phone, $password){
         return [
             'grant_type' => 'password',
@@ -40,7 +49,7 @@ class AuthController extends Controller
        public function loginVcard(Request $request){
         //This Login is for vCard users from both TAES and DAD
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|int|min:9',
+            'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$',
             'password' => 'required|min:3',
         ]);
 
@@ -51,6 +60,8 @@ class AuthController extends Controller
                 'errors' => $validator->errors(),
             ], 422); // HTTP 422 Unprocessable Entity
         }
+
+        $request->phone_number = trimPortugueseCountryCode($request->phone_number);
 
         $credentials = request(['phone_number', 'password']);
         $vcard = Vcard::where('phone_number', $request->phone_number)->first();
