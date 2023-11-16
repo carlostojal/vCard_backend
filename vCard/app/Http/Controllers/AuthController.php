@@ -41,7 +41,7 @@ class AuthController extends Controller
         //This Login is for vCard users from both TAES and DAD
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|int|min:9',
-            'password' => 'required|min:8',
+            'password' => 'required|min:3',
         ]);
 
         if ($validator->fails()) {
