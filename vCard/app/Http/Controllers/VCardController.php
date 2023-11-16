@@ -24,9 +24,10 @@ class VCardController extends Controller
     }
 
     // trim the country code from the phone number string, in case it is provided
-    function trimPortugueseCountryCode($phoneNumber) {
+    private function trimPortugueseCountryCode($phoneNumber)
+    {
         if (strpos($phoneNumber, '+351') === 0) {
-        $phoneNumber = substr($phoneNumber, 4);
+            $phoneNumber = substr($phoneNumber, 4);
         }
         return $phoneNumber;
     }
@@ -35,7 +36,7 @@ class VCardController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$',
+            'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$/',
             'password' => 'required',
             'email' => 'required|email',
             'confirmation_code' => 'required|min:4',
@@ -50,21 +51,12 @@ class VCardController extends Controller
             ], 422); // HTTP 422 Unprocessable Entity
         }
 
-        if (!Str::startsWith($request->phone_number, '9')) {
-             return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => "Phone Number needs to start with 9"
-            ], 422); // HTTP 422 Unprocessable Entity
-
-        }
-
         // trim the input phone number
-        $request->phone_number = trimPortugueseCountryCode($request->phone_number);
+        $request->phone_number = $this->trimPortugueseCountryCode($request->phone_number);
 
         $vcard = Vcard::where('phone_number', $request->phone_number)->first();
 
-        if(!$vcard){
+        if (!$vcard) {
             $vcard = new VCard();
             $vcard->name = $request->name;
             $vcard->phone_number = $request->phone_number;
@@ -91,7 +83,8 @@ class VCardController extends Controller
         ]);
     }
 
-    public function storeMobile(Request $request){
+    public function storeMobile(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|int|min:9',
             'password' => 'required|min:8',
@@ -116,7 +109,7 @@ class VCardController extends Controller
 
         //This Function is for the mobile version make a register with minimum data (Phone Number, Password and Acess Code)
         $vcard = Vcard::where('phone_number', $request->phone_number)->first();
-        if(!$vcard){
+        if (!$vcard) {
             $vcard = new VCard();
             $vcard->phone_number = $request->phone_number;
             $vcard->name = "name-taes"; //TAES dummydata
@@ -153,7 +146,8 @@ class VCardController extends Controller
     }
 
 
-    public function profile() {
+    public function profile()
+    {
 
         $vcard = Auth::user();
         // dd($vcard);
@@ -188,8 +182,9 @@ class VCardController extends Controller
         //
     }
 
-    public function send(Request $request){
-          $validator = Validator::make($request->all(), [
+    public function send(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'phone_number' => 'required|int|min:9',
             'amount' => 'required|numeric',
             'confirmation_code' => 'required|min:4',
@@ -204,29 +199,29 @@ class VCardController extends Controller
             ], 422); // HTTP 422 Unprocessable Entity
         }
 
-        if($request->amount <= 0.00) {
+        if ($request->amount <= 0.00) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Amount needs to be greater than 0.00'
             ], 400);
         }
         $vcard_origin = Auth::user();
-        if($vcard_origin->balance < $request->amount) {
+        if ($vcard_origin->balance < $request->amount) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Amount needs to be lower than your balance'
             ], 400);
         }
 
-        if($vcard_origin->max_debit < $request->amount) {
+        if ($vcard_origin->max_debit < $request->amount) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Amount needs to be lower than your max debit limit'
             ], 400);
         }
 
-        if(!Hash::check($request->confirmation_code, $vcard_origin->confirmation_code)) {
-             return response()->json([
+        if (!Hash::check($request->confirmation_code, $vcard_origin->confirmation_code)) {
+            return response()->json([
                 'status' => 'error',
                 'message' => 'Incorrect Confimation Code'
             ], 400);
@@ -234,34 +229,35 @@ class VCardController extends Controller
 
         $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
 
-        if(!$vcard_destination) {
-             return response()->json([
+        if (!$vcard_destination) {
+            return response()->json([
                 'status' => 'error',
                 'message' => 'Phone number does not exist'
             ], 400);
         }
 
-        if($vcard_origin == $vcard_destination){
-              return response()->json([
+        if ($vcard_origin == $vcard_destination) {
+            return response()->json([
                 'status' => 'error',
                 'message' => 'You cant send money to yourself'
             ], 400);
         }
 
         //There are a lot of payment types so each one should follow a different logic
-        switch($request->payment_type) {
-            case "VCARD": $this->makeVCARDTransaction($vcard_origin, $vcard_destination, $request);
-                          break;
+        switch ($request->payment_type) {
+            case "VCARD":
+                $this->makeVCARDTransaction($vcard_origin, $vcard_destination, $request);
+                break;
         }
 
         return response()->json([
-                'status' => 'success',
-                'message' => 'Transaction Successfuly'
-            ], 200);
-
+            'status' => 'success',
+            'message' => 'Transaction Successfuly'
+        ], 200);
     }
 
-    private function makeVCARDTransaction($vcard, $vcard2, $request){
+    private function makeVCARDTransaction($vcard, $vcard2, $request)
+    {
         $newBalance = $vcard->balance - $request->amount;
         $newBalance2 = $vcard2->balance + $request->amount;
 
@@ -302,5 +298,4 @@ class VCardController extends Controller
         $vcard->save();
         $vcard2->save();
     }
-
 }
