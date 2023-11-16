@@ -18,4 +18,6 @@ class TransactionController extends Controller
         $vcard = Auth::user();
         return response()->json($vcard->transactions, 200);
     }
+
+
 }

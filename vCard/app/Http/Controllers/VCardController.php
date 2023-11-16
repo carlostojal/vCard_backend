@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use DateTime;
+use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Models\User;
 
@@ -139,69 +141,6 @@ class VCardController extends Controller
         return Vcard::where('phone_number', $phone)->first();
     }
 
-    public function send(Request $request){
-          $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|int|min:9',
-            'amount' => 'required|numeric',
-            'confirmation_code' => 'required|min:4',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
-        }
-
-        if($request->amount <= 0.00) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Amount needs to be greater than 0.00'
-            ], 400);
-        }
-        $vcard_origin = Auth::user();
-        if($vcard_origin->balance < $request->amount) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Amount needs to be lower than your balance'
-            ], 400);
-        }
-
-
-        if(!Hash::check($request->confirmation_code, $vcard_origin->confirmation_code)) {
-             return response()->json([
-                'status' => 'error',
-                'message' => 'Incorrect Confimation Code'
-            ], 400);
-        }
-
-        $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
-
-        if(!$vcard_destination) {
-             return response()->json([
-                'status' => 'error',
-                'message' => 'Phone number does not exist'
-            ], 400);
-        }
-
-        if($vcard_origin == $vcard_destination){
-              return response()->json([
-                'status' => 'error',
-                'message' => 'You cant send money to yourself'
-            ], 400);
-        }
-
-        $vcard_origin->balance -= $request->amount;
-        $vcard_destination->balance += $request->amount;
-        $vcard_origin->save();
-        $vcard_destination->save();
-        return response()->json([
-                'status' => 'success',
-                'message' => 'Transaction Successfuly'
-            ], 200);
-
-    }
 
     public function profile() {
 
@@ -237,4 +176,120 @@ class VCardController extends Controller
     {
         //
     }
+
+    public function send(Request $request){
+          $validator = Validator::make($request->all(), [
+            'phone_number' => 'required|int|min:9',
+            'amount' => 'required|numeric',
+            'confirmation_code' => 'required|min:4',
+            'payment_type' => ['required', 'string', 'in:VCARD,MBWAY,PayPal,IBAN,MB,Visa'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        if($request->amount <= 0.00) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Amount needs to be greater than 0.00'
+            ], 400);
+        }
+        $vcard_origin = Auth::user();
+        if($vcard_origin->balance < $request->amount) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Amount needs to be lower than your balance'
+            ], 400);
+        }
+
+        if($vcard_origin->max_debit < $request->amount) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Amount needs to be lower than your max debit limit'
+            ], 400);
+        }
+
+        if(!Hash::check($request->confirmation_code, $vcard_origin->confirmation_code)) {
+             return response()->json([
+                'status' => 'error',
+                'message' => 'Incorrect Confimation Code'
+            ], 400);
+        }
+
+        $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
+
+        if(!$vcard_destination) {
+             return response()->json([
+                'status' => 'error',
+                'message' => 'Phone number does not exist'
+            ], 400);
+        }
+
+        if($vcard_origin == $vcard_destination){
+              return response()->json([
+                'status' => 'error',
+                'message' => 'You cant send money to yourself'
+            ], 400);
+        }
+
+        //There are a lot of payment types so each one should follow a different logic
+        switch($request->payment_type) {
+            case "VCARD": $this->makeVCARDTransaction($vcard_origin, $vcard_destination, $request);
+                          break;
+        }
+
+        return response()->json([
+                'status' => 'success',
+                'message' => 'Transaction Successfuly'
+            ], 200);
+
+    }
+
+    private function makeVCARDTransaction($vcard, $vcard2, $request){
+        $newBalance = $vcard->balance - $request->amount;
+        $newBalance2 = $vcard2->balance + $request->amount;
+
+        $trans = new Transaction();
+        $trans2 = new Transaction();
+
+        $trans->vcard = $vcard->phone_number;
+        $dt = new DateTime();
+        $trans->date = $dt->format('Y-m-d');
+        $trans->datetime = $dt->format('Y-m-d H:i:s');
+        $trans->type = 'D';
+        $trans->value = $request->amount;
+        $trans->old_balance = $vcard->balance;
+        $trans->new_balance = $newBalance;
+        $trans->payment_type = "VCARD";
+        $trans->pair_transaction = $trans2->id;
+        $trans->pair_vcard = $vcard2->phone_number;
+        $trans->payment_reference = $vcard2->phone_number;
+
+        $trans2->vcard = $vcard2->phone_number;
+        $trans2->date = $dt->format('Y-m-d');
+        $trans2->datetime = $dt->format('Y-m-d H:i:s');
+        $trans2->type = 'C';
+        $trans2->value = $request->amount;
+        $trans2->old_balance = $vcard2->balance;
+        $trans2->new_balance = $newBalance2;
+        $trans2->payment_type = "VCARD";
+        $trans->pair_transaction = $trans->id;
+        $trans->pair_vcard = $vcard->phone_number;
+        $trans2->payment_reference = $vcard->phone_number;
+
+        $trans->save();
+        $trans2->save();
+
+        $vcard->balance = $newBalance;
+        $vcard2->balance = $newBalance2;
+
+        $vcard->save();
+        $vcard2->save();
+    }
+
 }
