@@ -10,6 +10,6 @@ class Category extends Model
     use HasFactory;
 
     function vcards(){
-        return $this->belongsToMany(Vcard::class);
+        return $this->belongsTo(Vcard::class);
     }
 }

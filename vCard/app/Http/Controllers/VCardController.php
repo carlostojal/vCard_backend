@@ -277,7 +277,6 @@ class VCardController extends Controller
         $trans->old_balance = $vcard->balance;
         $trans->new_balance = $newBalance;
         $trans->payment_type = "VCARD";
-        $trans->pair_transaction = $trans2->id;
         $trans->pair_vcard = $vcard2->phone_number;
         $trans->payment_reference = $vcard2->phone_number;
 
@@ -289,18 +288,25 @@ class VCardController extends Controller
         $trans2->old_balance = $vcard2->balance;
         $trans2->new_balance = $newBalance2;
         $trans2->payment_type = "VCARD";
-        $trans->pair_transaction = $trans->id;
-        $trans->pair_vcard = $vcard->phone_number;
+        $trans2->pair_vcard = $vcard->phone_number;
         $trans2->payment_reference = $vcard->phone_number;
 
         $trans->save();
         $trans2->save();
+
+        $trans->pair_transaction = $trans2->id;
+        $trans2->pair_transaction = $trans->id;
 
         $vcard->balance = $newBalance;
         $vcard2->balance = $newBalance2;
 
         $vcard->save();
         $vcard2->save();
+
+        $trans->save();
+        $trans2->save();
+
     }
+
 
 }
