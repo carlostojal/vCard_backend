@@ -61,6 +61,7 @@ class AuthController extends Controller
             ], 422); // HTTP 422 Unprocessable Entity
         }
 
+        // trim the input phone number
         $request->phone_number = trimPortugueseCountryCode($request->phone_number);
 
         $credentials = request(['phone_number', 'password']);

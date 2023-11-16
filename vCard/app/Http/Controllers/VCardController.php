@@ -23,11 +23,19 @@ class VCardController extends Controller
         return response()->json($vcards, 200);
     }
 
+    // trim the country code from the phone number string, in case it is provided
+    function trimPortugueseCountryCode($phoneNumber) {
+        if (strpos($phoneNumber, '+351') === 0) {
+        $phoneNumber = substr($phoneNumber, 4);
+        }
+        return $phoneNumber;
+    }
+
     public function store(Request $request)
     {
 
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|int|min:9',
+            'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$',
             'password' => 'required',
             'email' => 'required|email',
             'confirmation_code' => 'required|min:4',
@@ -50,6 +58,9 @@ class VCardController extends Controller
             ], 422); // HTTP 422 Unprocessable Entity
 
         }
+
+        // trim the input phone number
+        $request->phone_number = trimPortugueseCountryCode($request->phone_number);
 
         $vcard = Vcard::where('phone_number', $request->phone_number)->first();
 
