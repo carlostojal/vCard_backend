@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VCardController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\PiggyBankController;
 
 //Rotas específicas
 Route::post('/vcards/login', [AuthController::class, 'loginVcard']);
@@ -33,6 +34,8 @@ Route::middleware('auth:vcard')->group(function () {
     //api/vcard/
     //VCARD USERS ROUTES, TAES IS HERE
     Route::get('/vcards/profile', [VCardController::class, 'profile']);
+    Route::resource('piggy-bank', PiggyBankController::class);
+    Route::get('piggy-bank', [PiggyBankController::class, 'getPiggyBank']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::resource('vcards', VCardController::class)->except('store');
     Route::get('/testVcard', function () {

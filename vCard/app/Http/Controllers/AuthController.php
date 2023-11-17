@@ -93,7 +93,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'vCard User Logged successfully',
-                'data' => $responseData
+                'data' => $responseData, 
             ], 201);
         }
 
