@@ -49,7 +49,7 @@ class AuthController extends Controller
        public function loginVcard(Request $request){
         //This Login is for vCard users from both TAES and DAD
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$/',
+            'phone_number' => 'regex:/^(?:\+351)?9\d{7,}$/',
             'password' => 'required|min:3',
         ]);
 
