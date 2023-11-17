@@ -15,6 +15,13 @@ class PiggyBankController extends Controller
 
         $piggy_bank = PiggyBank::where('vcard_phone_number', $vcard->phone_number)->first();
 
+        if(!$piggy_bank) {
+            return response()->json([
+            'status' => 'error',
+            'message' => 'Piggy Bank not found',
+        ], 422);
+
+        }
         return response()->json([
             'status' => 'success',
             'data' => $piggy_bank,

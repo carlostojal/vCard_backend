@@ -35,7 +35,7 @@ Route::middleware('auth:vcard')->group(function () {
     //VCARD USERS ROUTES, TAES IS HERE
     Route::get('/vcards/profile', [VCardController::class, 'profile']);
     Route::resource('piggy-bank', PiggyBankController::class);
-    Route::get('piggy-bank', [PiggyBankController::class, 'getPiggyBank']);
+    Route::get('/piggy-bank', [PiggyBankController::class, 'getPiggyBank']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::resource('vcards', VCardController::class)->except('store');
     Route::get('/testVcard', function () {
