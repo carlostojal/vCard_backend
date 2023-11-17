@@ -11,6 +11,7 @@ use DateTime;
 use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Models\User;
+use App\Models\PiggyBank;
 
 class VCardController extends Controller
 {
@@ -118,15 +119,19 @@ class VCardController extends Controller
             $vcard->blocked = 0;
             $vcard->balance = 0;
             $vcard->max_debit = 5000;
-
-            //hash da pass e confirmation_code
-            $vcard->password = Hash::make($request->password);
+            $vcard->password = Hash::make($request->password); //hash da pass e confirmation_code
             $vcard->save();
+
+            $piggy_bank = new PiggyBank();
+            $piggy_bank->balance = 0;
+            $piggy_bank->vcard_phone_number = $request->phone_number;
+            $piggy_bank->save();
 
             return response()->json([
                 'status' => 'success',
                 'message' => [
-                    $vcard //alterar para so enviar os dados necessarios
+                    $vcard, //alterar para so enviar os dados necessarios
+                    $piggy_bank
                 ]
             ]);
         }
