@@ -16,7 +16,8 @@ class TransactionController extends Controller
 
     public function getMyTransactions() {
         $vcard = Auth::user();
-        return response()->json($vcard->transactions, 200);
+        $transactions = $vcard->transactions()->paginate(10);
+        return response()->json($transactions, 200);
     }
 
 

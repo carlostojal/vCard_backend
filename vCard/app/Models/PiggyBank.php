@@ -20,5 +20,9 @@ class PiggyBank extends Model
     }
 
 
+    public function vcard(){
+        return $this->hasOne(Vcard::class, 'vcard_phone_number', 'phone_number');
+    }
 
-} 
+
+}

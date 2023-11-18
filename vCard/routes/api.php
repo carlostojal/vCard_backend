@@ -36,6 +36,7 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/vcards/profile', [VCardController::class, 'profile']);
     Route::resource('piggy-bank', PiggyBankController::class);
     Route::get('/piggy-bank', [PiggyBankController::class, 'getPiggyBank']);
+    Route::post('/piggy-bank/withdraw', [PiggyBankController::class, 'withdraw']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::resource('vcards', VCardController::class)->except('store');
     Route::get('/testVcard', function () {

@@ -1,4 +1,4 @@
-<?php
+<?, 'vcard_phone_number', 'phone_number'php
 
 namespace App\Models;
 
@@ -12,10 +12,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    // public function findForPassport(string $name): User
-    // {
-    //     return $this->where('name', $name)->first();
-    // }
     public static function boot()
     {
         parent::boot();

@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
+use App\Models\TransactionPiggyBank;
 
 class Vcard extends Authenticatable
 {
@@ -27,6 +27,15 @@ class Vcard extends Authenticatable
     public function transactions(){
         return $this->hasMany(Transaction::class, 'vcard', 'phone_number');
     }
+
+    public function piggyBank(){
+        return $this->belongsTo(PiggyBank::class,'phone_number', 'vcard_phone_number');
+    }
+
+    public function piggyTransactions(){
+        return $this->hasMany(TransactionPiggyBank::class, 'vcard', 'phone_number');
+    }
+
 
 
     //Passport
