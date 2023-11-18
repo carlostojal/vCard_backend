@@ -14,7 +14,7 @@ class TransactionPiggyBank extends Model
     public $timestamps = false; // Disable timestamps
 
     protected $fillable = [
-        'vcard', 'date', 'datetime', 'value', 'old_balance', 'new_balance', 'description'
+        'vcard', 'date', 'datetime', 'value', 'type', 'old_balance', 'new_balance', 'description'
     ];
 
     public function vcard() {
