@@ -1,4 +1,4 @@
-<?, 'vcard_phone_number', 'phone_number'php
+<?php
 
 namespace App\Models;
 
@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
-
+   
     public static function boot()
     {
         parent::boot();

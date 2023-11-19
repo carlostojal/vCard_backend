@@ -205,7 +205,7 @@ class VCardController extends Controller
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|int|min:9',
             'amount' => 'required|numeric',
-            'confirmation_code' => 'required|min:4',
+            'confirmation_code' => 'required|min:3',
             'payment_type' => ['required', 'string', 'in:VCARD,MBWAY,PayPal,IBAN,MB,Visa'],
         ]);
 

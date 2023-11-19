@@ -1,16 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Middleware\VcardUserProvider;
-use App\Http\Controllers\UserController;
+use App\Models\User;
 use App\Models\Vcard;
+
 
 class AuthController extends Controller
 {
@@ -93,7 +92,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'vCard User Logged successfully',
-                'data' => $responseData, 
+                'data' => $responseData,
             ], 201);
         }
 
@@ -116,6 +115,8 @@ class AuthController extends Controller
         }
 
         $credentials = $request->only('email', 'password');
+        //$user = User::find($request->email);
+        // $user = User::where('email', $request->email)->first();
 
         if (auth()->guard('web')->attempt($credentials)) {
             $user = auth()->guard('web')->user();

@@ -17,8 +17,8 @@ class TransactionController extends Controller
 
     public function getMyTransactions() {
         $vcard = Auth::user();
-        $transactions = $vcard->transactions()->paginate(10);
-        $transactions = $transactions->collect()->mapInto(TransactionResource::class)->toArray();
+        $transactions = $vcard->transactions()->orderBy('date', 'desc')->paginate(10);
+        // $transformedTransactions = TransactionResource::collection($transactions);
         return response()->json($transactions, 200);
     }
 
