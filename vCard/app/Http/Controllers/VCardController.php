@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\DefaultCategory;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +22,7 @@ class VCardController extends Controller
      */
     public function index()
     {
-        $vcards = Vcard::paginate(10); // Change the number (e.g., 10) to the desired items per page
+        $vcards = Vcard::paginate(10);
         return response()->json($vcards, 200);
     }
 
@@ -69,6 +71,17 @@ class VCardController extends Controller
             //hash da pass e confirmation_code
             $vcard->password = Hash::make($request->password);
             $vcard->save();
+
+            //Set categories
+            $allCats = DefaultCategory::all();
+            foreach($allCats as $dCat){
+                $cat = Category::create([
+                    'vcard' => $request->phone_number,
+                    'type' => $dCat->type,
+                    'name' => $dCat->name
+                ]);
+                $cat->save();
+            }
 
             return response()->json([
                 'status' => 'success',

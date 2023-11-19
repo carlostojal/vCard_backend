@@ -21,7 +21,7 @@ class Vcard extends Authenticatable
     //Relationships
 
     public function categories(){
-        return $this->belongsToMany(Category::class);
+        return $this->hasMany(Category::class, 'vcard', 'phone_number');
     }
 
     public function transactions(){

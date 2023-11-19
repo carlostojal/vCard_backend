@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\VCardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\PiggyBankController;
@@ -20,10 +21,10 @@ Route::post('/users/', [UserController::class, 'store']);
 
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
+    Route::get('/categories', [CategoryController::class, 'index']); //Returns all categories that exist in default categories
+    Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
+
     Route::resource('users', UserController::class)->except('store');
-    Route::get('/testAdmin', function () {
-        return 'You need to have a user admin token';
-    });
     Route::post('/users/logout', [AuthController::class, 'logout']);
 });
 
@@ -34,10 +35,13 @@ Route::middleware('auth:vcard')->group(function () {
     Route::post('/piggy-bank/withdraw', [PiggyBankController::class, 'withdraw']);
     Route::post('/piggy-bank/deposit', [PiggyBankController::class, 'deposit']);
 
+    Route::get('/categories', [CategoryController::class, 'getMyCategories']); //Returns vcard's categories
+
     Route::get('/vcards/profile', [VCardController::class, 'profile']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::post('/vcards/send', [VcardController::class, 'send']);
     Route::post('/vcards/logout', [AuthController::class, 'logout']);
+
     Route::resource('vcards', VCardController::class)->except('store');
 });
 
