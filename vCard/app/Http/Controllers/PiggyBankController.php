@@ -37,7 +37,7 @@ class PiggyBankController extends Controller
     public function getTransactions() {
         $vcard = Auth::user();
         $piggy = $vcard->piggyBank;
-        $transactions = $piggy->transactions;
+        $transactions = $piggy->transactions()->orderBy('datetime', 'desc')->paginate(10);
         return response()->json([
             'status' => 'success',
             'data' => $transactions,
@@ -80,7 +80,7 @@ class PiggyBankController extends Controller
                 'message' => 'Amount need to be greater than 0.00',
             ], 422);
         }
-        
+
         if(!(Hash::check($req->confirmation_code, $vcard->confirmation_code))){
             return response()->json([
                 'status' => 'error',

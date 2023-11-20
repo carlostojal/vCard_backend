@@ -254,7 +254,7 @@ class VCardController extends Controller
             ], 400);
         }
 
-        if ($vcard_origin == $vcard_destination) {
+        if ($vcard_origin->phone_number == $vcard_destination->phone_number) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'You cant send money to yourself'
