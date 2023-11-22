@@ -145,7 +145,11 @@ class AuthController extends Controller
                 ],
             ], 201);
         }
-        return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
+        // return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Wrong Credentials'
+        ], 401);
 
     }
 
