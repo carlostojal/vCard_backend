@@ -166,7 +166,6 @@ class VCardController extends Controller
 
     public function profile()
     {
-
         $vcard = Auth::user();
         // dd($vcard);
         // return $vcard;
@@ -205,6 +204,7 @@ class VCardController extends Controller
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|int|min:9',
             'amount' => 'required|numeric',
+            'description' => 'string',
             'confirmation_code' => 'required|min:3',
             'payment_type' => ['required', 'string', 'in:VCARD,MBWAY,PayPal,IBAN,MB,Visa'],
         ]);
@@ -292,6 +292,7 @@ class VCardController extends Controller
         $trans->new_balance = $newBalance;
         $trans->payment_type = "VCARD";
         $trans->pair_vcard = $vcard2->phone_number;
+        if($request->description) $trans->description = $request->description;
         $trans->payment_reference = $vcard2->phone_number;
 
         $trans2->vcard = $vcard2->phone_number;
@@ -303,6 +304,8 @@ class VCardController extends Controller
         $trans2->new_balance = $newBalance2;
         $trans2->payment_type = "VCARD";
         $trans2->pair_vcard = $vcard->phone_number;
+        if($request->description) $trans->description = $request->description;
+        $trans->payment_reference = $vcard2->phone_number;
         $trans2->payment_reference = $vcard->phone_number;
 
         $trans->save();
