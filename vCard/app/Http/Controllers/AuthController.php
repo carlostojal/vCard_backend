@@ -103,7 +103,7 @@ class AuthController extends Controller
         //This Login is only for Admins users from DAD
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required|min:8',
+            'password' => 'required|min:3',
         ]);
 
         if ($validator->fails()) {
@@ -153,10 +153,20 @@ class AuthController extends Controller
     public function logout(Request $request) {
          $user = Auth::user();
          $token = $user->token();
+         if(!$token){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Token was already revoked'
+            ], 200);
+
+         }
          // $token = $user->tokens->find($accessToken);
          $token->revoke();
          $token->delete();
-         return response(['msg' => 'Token revoked'], 200);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Token was revoked from user '.$user->name
+        ], 200);
     }
 
     public function boot(): void
