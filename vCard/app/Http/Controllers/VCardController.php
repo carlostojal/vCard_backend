@@ -199,14 +199,13 @@ class VCardController extends Controller
         //
     }
 
-    public function send(Request $request)
+    public function send(Request $request) //Transfer money to another vcard
     {
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|int|min:9',
+            'phone_number' => 'required|min:9',
             'amount' => 'required|numeric',
-            'description' => 'string',
-            'confirmation_code' => 'required|min:3',
-            'payment_type' => ['required', 'string', 'in:VCARD,MBWAY,PayPal,IBAN,MB,Visa'],
+            'confirmation_code' => 'required|min:4|max:4',
+            'payment_type' => ['required', 'in:VCARD,MBWAY,PAYPAL,IBAN,MB,VISA'],
         ]);
 
         if ($validator->fails()) {
