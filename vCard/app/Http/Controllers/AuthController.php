@@ -45,7 +45,17 @@ class AuthController extends Controller
          ];
     }
 
-       public function loginVcard(Request $request){
+    public function getAuthenticatedGuard(){
+        if (Auth::guard('api')->check()) {
+            return response()->json(['status' => 'success', 'message' => 'users']);
+        } elseif (Auth::guard('vcard')->check()) {
+            return response()->json(['status' => 'success', 'message' => 'vcards']);
+        }
+
+        return response()->json(['status' => 'error', 'message' => 'User not logged']);
+    }
+
+    public function loginVcard(Request $request){
         //This Login is for vCard users from both TAES and DAD
         $validator = Validator::make($request->all(), [
             'phone_number' => 'regex:/^(?:\+351)?9\d{7,}$/',

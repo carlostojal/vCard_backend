@@ -23,6 +23,8 @@ Route::middleware(['auth:api,vcard'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout']);
 });
 
+Route::get('/checkAuth', [AuthController::class, 'getAuthenticatedGuard']);
+
 Route::get('/Unauthenticated', function () {
     return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
 })->name('Unauthenticated');
