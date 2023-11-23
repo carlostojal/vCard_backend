@@ -64,7 +64,7 @@ class VCardController extends Controller
             $vcard->name = $request->name;
             $vcard->phone_number = $request->phone_number;
             $vcard->email = $request->email;
-            $vcard->photo_url = $request->photo_url;
+            //$vcard->photo_url = $request->photo_url;
             $vcard->confirmation_code = Hash::make($request->confirmation_code);
             $vcard->blocked = 0;
 
