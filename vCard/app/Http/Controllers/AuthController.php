@@ -55,7 +55,7 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed',
+                'message' => 'Form Validation failed',
                 'errors' => $validator->errors(),
             ], 422); // HTTP 422 Unprocessable Entity
         }
@@ -96,7 +96,10 @@ class AuthController extends Controller
             ], 201);
         }
 
-        return response(['error' => 'Unauthorized, Wrong Credentials'], 401);
+         return response()->json([
+            'status' => 'error',
+            'message' => 'Wrong Credentials'
+        ], 401);
     }
 
     public function loginUser(Request $request){
