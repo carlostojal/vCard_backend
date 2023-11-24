@@ -42,7 +42,7 @@ class VCardController extends Controller
             'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$/',
             'password' => 'required',
             'email' => 'required|email',
-            'confirmation_code' => 'required|min:4',
+            'confirmation_code' => 'required|min:3',
             'name' => 'required',
         ]);
 
@@ -102,7 +102,7 @@ class VCardController extends Controller
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|int|min:9',
             'password' => 'required|min:8',
-            'confirmation_code' => 'required|min:4',
+            'confirmation_code' => 'required|min:3',
         ]);
 
         if ($validator->fails()) {
