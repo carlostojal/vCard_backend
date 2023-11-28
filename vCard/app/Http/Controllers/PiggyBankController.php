@@ -46,8 +46,7 @@ class PiggyBankController extends Controller
 
     public function withdraw(Request $req){
         $validator = Validator::make($req->all(), [
-            'amount' => 'required|numeric',
-            'confirmation_code' => 'required|min:3',
+            'amount' => 'required|numeric'
         ]);
 
         if ($validator->fails()) {
@@ -78,13 +77,6 @@ class PiggyBankController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Amount need to be greater than 0.00',
-            ], 422);
-        }
-
-        if(!(Hash::check($req->confirmation_code, $vcard->confirmation_code))){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Wrong Confirmation Code',
             ], 422);
         }
 
@@ -128,8 +120,7 @@ class PiggyBankController extends Controller
 
      public function deposit(Request $req){
         $validator = Validator::make($req->all(), [
-            'amount' => 'required|numeric',
-            'confirmation_code' => 'required|min:3',
+            'amount' => 'required|numeric'
         ]);
 
         if ($validator->fails()) {
@@ -160,13 +151,6 @@ class PiggyBankController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Amount need to be greater than 0.00',
-            ], 422);
-        }
-
-        if(!(Hash::check($req->confirmation_code, $vcard->confirmation_code))){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Wrong Confirmation Code',
             ], 422);
         }
 
