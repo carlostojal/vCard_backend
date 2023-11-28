@@ -49,6 +49,7 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/vcards/categories', [CategoryController::class, 'getMyCategories']); //Returns vcard's categories
 
     Route::get('/vcards/profile', [VCardController::class, 'profile']);
+    Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::post('/vcards/send', [VcardController::class, 'send']);
     // Route::post('/vcards/logout', [AuthController::class, 'logout']);

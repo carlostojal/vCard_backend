@@ -51,10 +51,8 @@ class VCardController extends Controller
                 'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
-        }
+            ], 422);         }
 
-        // trim the input phone number
         $request->phone_number = $this->trimPortugueseCountryCode($request->phone_number);
 
         $vcard = Vcard::where('phone_number', $request->phone_number)->first();
@@ -65,14 +63,18 @@ class VCardController extends Controller
             $vcard->phone_number = $request->phone_number;
             $vcard->email = $request->email;
             //$vcard->photo_url = $request->photo_url;
+            if($request->hasFile('photo')){
+                $photo = $request->file('photo');
+                $photoName = $request->phone_number . time() . '.' . $photo->extension();
+                $photo->storeAs('vcard_photos',$photoName,'public');
+                $vcard->photo_url = $photoName;
+            }
             $vcard->confirmation_code = Hash::make($request->confirmation_code);
             $vcard->blocked = 0;
 
-            //hash da pass e confirmation_code
             $vcard->password = Hash::make($request->password);
             $vcard->save();
 
-            //Set categories
             $allCats = DefaultCategory::all();
             foreach($allCats as $dCat){
                 $cat = Category::create([
@@ -86,7 +88,7 @@ class VCardController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => [
-                    $vcard //alterar para so enviar os dados necessarios (PINIA)
+                    $vcard
                 ]
             ]);
         }
@@ -167,11 +169,17 @@ class VCardController extends Controller
     public function profile()
     {
         $vcard = Auth::user();
-        // dd($vcard);
-        // return $vcard;
         return response()->json([
             'status' => 'success',
             'data' => $vcard,
+        ], 200);
+    }
+
+    public function getBalance(){
+        $vcard = Auth::user();
+        return response()->json([
+            'status' => 'success',
+            'data' => $vcard->balance,
         ], 200);
     }
 
@@ -203,6 +211,7 @@ class VCardController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|min:9',
+            'description' => 'string',
             'amount' => 'required|numeric',
             'confirmation_code' => 'required|min:3|max:4',
             'payment_type' => ['required', 'in:VCARD,MBWAY,PAYPAL,IBAN,MB,VISA'],
@@ -290,8 +299,8 @@ class VCardController extends Controller
         $trans->old_balance = $vcard->balance;
         $trans->new_balance = $newBalance;
         $trans->payment_type = "VCARD";
-        $trans->pair_vcard = $vcard2->phone_number;
         if($request->description) $trans->description = $request->description;
+        $trans->pair_vcard = $vcard2->phone_number;
         $trans->payment_reference = $vcard2->phone_number;
 
         $trans2->vcard = $vcard2->phone_number;
@@ -303,7 +312,7 @@ class VCardController extends Controller
         $trans2->new_balance = $newBalance2;
         $trans2->payment_type = "VCARD";
         $trans2->pair_vcard = $vcard->phone_number;
-        if($request->description) $trans->description = $request->description;
+        if($request->description) $trans2->description = $request->description;
         $trans->payment_reference = $vcard2->phone_number;
         $trans2->payment_reference = $vcard->phone_number;
 
