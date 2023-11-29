@@ -32,6 +32,8 @@ Route::get('/Unauthenticated', function () {
 
 //COLOCAR DENTRO DO MIDDLEWARE DE AUTH
 Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
+Route::get('/vcards', [VCardController::class, 'getVcards']); //Returns all vcards
+
 
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE

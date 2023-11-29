@@ -332,4 +332,14 @@ class VCardController extends Controller
         $trans2->save();
 
     }
+
+    public function getVcards(){
+        $vcards = Vcard::paginate(20);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Admins retrieved successfully',
+            'data' => $vcards,
+        ], 200); // HTTP 200 OK
+    }
 }
