@@ -17,9 +17,7 @@ use App\Models\PiggyBank;
 
 class VCardController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         $vcards = Vcard::paginate(10);
@@ -34,6 +32,7 @@ class VCardController extends Controller
         }
         return $phoneNumber;
     }
+
 
     public function store(Request $request)
     {
@@ -99,6 +98,7 @@ class VCardController extends Controller
         ]);
     }
 
+
     public function storeMobile(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -157,9 +157,7 @@ class VCardController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
+
     public function show(string $phone)
     {
         return Vcard::where('phone_number', $phone)->first();
@@ -175,6 +173,7 @@ class VCardController extends Controller
         ], 200);
     }
 
+
     public function getBalance(){
         $vcard = Auth::user();
         return response()->json([
@@ -183,29 +182,6 @@ class VCardController extends Controller
         ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 
     public function send(Request $request) //Transfer money to another vcard
     {
@@ -282,6 +258,7 @@ class VCardController extends Controller
         ], 200);
     }
 
+
     private function makeVCARDTransaction($vcard, $vcard2, $request)
     {
         $newBalance = $vcard->balance - $request->amount;
@@ -333,8 +310,19 @@ class VCardController extends Controller
 
     }
 
-    public function getVcards(){
-        $vcards = Vcard::paginate(20);
+
+    public function getVcards(Request $request){
+
+        
+        $phone_number = $request->phone_number;
+
+        $query = $phone_number
+            ? VCard::where('phone_number', $phone_number)
+            : VCard::query();
+
+
+        $vcards = $query->paginate(20);
+        
 
         return response()->json([
             'status' => 'success',

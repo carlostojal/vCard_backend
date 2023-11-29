@@ -32,7 +32,7 @@ Route::get('/Unauthenticated', function () {
 
 //COLOCAR DENTRO DO MIDDLEWARE DE AUTH
 Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
-Route::get('/vcards', [VCardController::class, 'getVcards']); //Returns all vcards
+Route::get('/vcards/search', [VCardController::class, 'getVcards']); // Usar este URL porque o '/vcards' ja está a ser usado para TAES
 
 
 Route::middleware('auth:api')->group(function () {
@@ -41,10 +41,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index']); //Returns all categories that exist in default categories
     Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
 
-
-
-
-    
 
 
 
