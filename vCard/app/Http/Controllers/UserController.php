@@ -48,6 +48,17 @@ class UserController extends Controller
         ], 201); // HTTP 201 Created
     }
 
+    public function getAdmins(){
+
+        $admins = User::where('name', 'like', 'Administrator%')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Admins retrieved successfully',
+            'data' => $admins,
+        ], 200); // HTTP 200 OK
+    }
+
     /**
      * Display the specified resource.
      */

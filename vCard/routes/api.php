@@ -29,11 +29,22 @@ Route::get('/Unauthenticated', function () {
     return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
 })->name('Unauthenticated');
 
+
+//COLOCAR DENTRO DO MIDDLEWARE DE AUTH
+Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
+
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
     Route::get('/testAdmin', function(){ return Auth::user(); });
     Route::get('/categories', [CategoryController::class, 'index']); //Returns all categories that exist in default categories
     Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
+
+
+
+
+    
+
+
 
     Route::resource('users', UserController::class)->except('store');
     // Route::post('/users/logout', [AuthController::class, 'logout']);
