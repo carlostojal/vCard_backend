@@ -17,6 +17,7 @@ class TransactionController extends Controller
             'status' => 'success',
             'message' => 'All Transactions retrieved successfully',
             'data' => $transactions,
+            'last' => $transactions->lastPage(),
         ], 200); // HTTP 200 OK
     }
 
