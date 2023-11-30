@@ -158,9 +158,15 @@ class VCardController extends Controller
     }
 
 
-    public function show(string $phone)
+    public function show(string $phone_number)
     {
-        return Vcard::where('phone_number', $phone)->first();
+        $vcard = Vcard::where('phone_number', $phone_number)->paginate(1);
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'vcard retrieved successfully',
+            'data' => $vcard,
+        ], 200); // HTTP 200 OK
     }
 
 
@@ -308,26 +314,5 @@ class VCardController extends Controller
         $trans->save();
         $trans2->save();
 
-    }
-
-
-    public function getVcards(Request $request){
-
-        
-        $phone_number = $request->phone_number;
-
-        $query = $phone_number
-            ? VCard::where('phone_number', $phone_number)
-            : VCard::query();
-
-
-        $vcards = $query->paginate(20);
-        
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Admins retrieved successfully',
-            'data' => $vcards,
-        ], 200); // HTTP 200 OK
     }
 }
