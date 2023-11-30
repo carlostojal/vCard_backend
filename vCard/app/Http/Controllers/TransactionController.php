@@ -30,6 +30,7 @@ class TransactionController extends Controller
             'status' => 'success',
             'message' => 'Transactions retrieved successfully',
             'data' => $transactions,
+            'last' => $transactions->lastPage(),
             ], 200); // HTTP 200 OK
         }
 
@@ -44,7 +45,12 @@ class TransactionController extends Controller
         $vcard = Auth::user();
         $transactions = $vcard->transactions()->orderBy('datetime', 'desc')->paginate(10);
         // $transformedTransactions = TransactionResource::collection($transactions);
-        return response()->json($transactions, 200);
+
+        return response()->json([
+            $transactions,
+            'last' => $transactions->lastPage(),
+        ], 200); // HTTP 200 OK
+
     }
 
 

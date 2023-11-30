@@ -15,19 +15,17 @@ use App\Models\Vcard;
 use App\Models\User;
 use App\Models\PiggyBank;
 
-
 class VCardController extends Controller
 {
 
     public function index()
     {
         $vcards = Vcard::paginate(10);
-
+        
         return response()->json([
             $vcards,
             'last' => $vcards->lastPage(),
         ], 200); // HTTP 200 OK
-
     }
 
     // trim the country code from the phone number string, in case it is provided
@@ -172,6 +170,7 @@ class VCardController extends Controller
             'status' => 'success',
             'message' => 'vcard retrieved successfully',
             'data' => $vcard,
+            'last' => $vcard->lastPage(),
         ], 200); // HTTP 200 OK
     }
 
