@@ -162,9 +162,22 @@ class VCardController extends Controller
     }
 
 
-    public function show(string $phone_number)
+    public function show(string $query)
     {
-        $vcard = Vcard::where('phone_number', $phone_number)->paginate(1);
+
+        //se for um numero de telemovel
+        if (Str::startsWith($query, '9') && strlen($query) == 9) {
+            $vcard = Vcard::where('phone_number', $query)->paginate(10);
+        }
+        //se for um email
+        else if (Str::contains($query, '@')) {
+            $vcard = Vcard::where('email', $query)->paginate(10);
+        }
+        //se for um nome
+        else {
+            $vcard = Vcard::where('name', 'LIKE', '%' . $query . '%')->paginate(10);
+        }
+        
         
         return response()->json([
             'status' => 'success',
