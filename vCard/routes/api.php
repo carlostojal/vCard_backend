@@ -33,7 +33,7 @@ Route::get('/Unauthenticated', function () {
 //COLOCAR DENTRO DO MIDDLEWARE DE AUTH
 Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
 Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
-//Route::get('/vcards/search', [VCardController::class, 'index']);
+Route::get('/vcards/search', [VCardController::class, 'indexBlocked']); //todos ou todos blocked ou todos unblocked
 Route::get('/transactions/search/{vcard}', [TransactionController::class, 'show']); //Returns all transactions of certain vcard
 Route::get('/transactions', [TransactionController::class, 'index']); //Returns all transactions
 

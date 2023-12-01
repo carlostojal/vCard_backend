@@ -20,6 +20,7 @@ class VCardController extends Controller
 
     public function index()
     {
+        
         $vcards = Vcard::paginate(10);
         
         return response()->json([
@@ -27,6 +28,36 @@ class VCardController extends Controller
             'last' => $vcards->lastPage(),
         ], 200); // HTTP 200 OK
     }
+
+
+    public function indexBlocked(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'blocked' => 'required|in:all,0,1',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        if($request->has('blocked') && $request->blocked != 'all'){
+            $vcards = Vcard::where('blocked', $request->blocked)->paginate(10);
+        }else{
+            $vcards = Vcard::paginate(10);
+        }
+        
+        return response()->json([
+            "blocked" => $request->blocked,
+            $vcards,
+            'last' => $vcards->lastPage(),
+        ], 200); // HTTP 200 OK
+
+    }
+
 
     // trim the country code from the phone number string, in case it is provided
     private function trimPortugueseCountryCode($phoneNumber)
@@ -162,28 +193,46 @@ class VCardController extends Controller
     }
 
 
-    public function show(string $query)
+    public function show(string $query, Request $request)
     {
 
-        //se for um numero de telemovel
-        if (Str::startsWith($query, '9') && strlen($query) == 9) {
-            $vcard = Vcard::where('phone_number', $query)->paginate(10);
+        $validator = Validator::make($request->all(), [
+            'blocked' => 'required|in:all,0,1',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
         }
-        //se for um email
-        else if (Str::contains($query, '@')) {
-            $vcard = Vcard::where('email', $query)->paginate(10);
+
+        switch ($query) {
+            case Str::startsWith($query, '9') && strlen($query) == 9:
+                $vcards = Vcard::where('phone_number', $query);
+                break;
+            case Str::contains($query, '@'):
+                $vcards = Vcard::where('email', $query);
+                break;
+            default:
+                $vcards = Vcard::where('name', 'LIKE', '%' . $query . '%');
+                break;
         }
-        //se for um nome
-        else {
-            $vcard = Vcard::where('name', 'LIKE', '%' . $query . '%')->paginate(10);
+
+        //Get the query allready filtered by name or phone or email and filter by blocked
+        if($request->blocked != 'all'){
+            $vcards = $vcards->where('blocked', $request->blocked)->paginate(10);
+        }else{
+            $vcards = $vcards->paginate(10);
         }
         
         
         return response()->json([
             'status' => 'success',
             'message' => 'vcard retrieved successfully',
-            'data' => $vcard,
-            'last' => $vcard->lastPage(),
+            'data' => $vcards,
+            'last' => $vcards->lastPage(),
         ], 200); // HTTP 200 OK
     }
 
