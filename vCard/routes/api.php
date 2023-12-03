@@ -17,7 +17,7 @@ Route::post('/users/login', [AuthController::class, 'loginUser']);
 Route::post('/vcards/', [VCardController::class, 'store']);
 Route::post('/vcards/mobile', [VCardController::class, 'storeMobile']);
 
-Route::post('/users/', [UserController::class, 'store']);
+Route::post('/users', [UserController::class, 'store']);
 
 Route::middleware(['auth:api,vcard'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout']);
@@ -36,7 +36,8 @@ Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
 Route::get('/vcards/search', [VCardController::class, 'indexBlocked']); //todos ou todos blocked ou todos unblocked
 Route::get('/transactions/search/{vcard}', [TransactionController::class, 'show']); //Returns all transactions of certain vcard
 Route::get('/transactions', [TransactionController::class, 'index']); //Returns all transactions
-
+Route::get('/transactions/type/search', [TransactionController::class, 'indexType']); //todos ou todos debit ou todos credit
+Route::delete('/users/{id}', [UserController::class, 'destroy']); //Deletes user
 
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE

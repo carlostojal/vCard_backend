@@ -80,6 +80,28 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::where('id', $id)->first();
+
+        if($user == null){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found',
+            ], 404); // HTTP 404 Not Found
+        }
+
+        $res = $user->delete();
+
+        if($res){
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User deleted successfully',
+            ], 200); // HTTP 200 OK
+        }else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User could not be deleted',
+            ], 500); // HTTP 500 Internal Server Error
+        }
+        
     }
 }

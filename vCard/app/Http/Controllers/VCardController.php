@@ -44,14 +44,13 @@ class VCardController extends Controller
             ], 422); // HTTP 422 Unprocessable Entity
         }
 
-        if($request->has('blocked') && $request->blocked != 'all'){
+        if($request->blocked != 'all'){
             $vcards = Vcard::where('blocked', $request->blocked)->paginate(10);
         }else{
             $vcards = Vcard::paginate(10);
         }
         
         return response()->json([
-            "blocked" => $request->blocked,
             $vcards,
             'last' => $vcards->lastPage(),
         ], 200); // HTTP 200 OK

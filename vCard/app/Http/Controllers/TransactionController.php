@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\TransactionResource;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
@@ -50,6 +51,35 @@ class TransactionController extends Controller
             $transactions,
             'last' => $transactions->lastPage(),
         ], 200); // HTTP 200 OK
+
+    }
+
+    public function indexType(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:all,D,C',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+
+        if($request->type != 'all'){
+            $transactions = Transaction::where('type', $request->type)->orderBy('datetime', 'desc')->paginate(10);
+        }else{
+            $transactions = Transaction::orderBy('datetime', 'desc')->paginate(10);
+        }
+        
+        return response()->json([
+            $transactions,
+            'last' => $transactions->lastPage(),
+        ], 200); // HTTP 200 OK
+
 
     }
 
