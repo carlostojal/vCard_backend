@@ -387,4 +387,47 @@ class VCardController extends Controller
         $trans2->save();
 
     }
+
+    public function changeBlock(String $phone_number, String $block){
+
+        //validar os inputs
+        $validator = Validator::make(['phone_number' => $phone_number, 'block' => $block], [
+            'phone_number' => 'required|min:9',
+            'block' => 'required|in:0,1',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        $vcard = Vcard::where('phone_number', $phone_number)->first();
+
+        if($vcard){
+
+            if($vcard->blocked == $block){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'The vcard is already blocked/unblocked',
+                ], 400);
+            }
+
+            $vcard->blocked = $block;
+            $vcard->save();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'vcard blocked successfully',
+                'data' => $vcard,
+            ], 200); // HTTP 200 OK
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'The vcard with that phone number does not exist',
+        ]);
+
+    }
 }
