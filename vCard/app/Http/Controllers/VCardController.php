@@ -208,7 +208,7 @@ class VCardController extends Controller
         }
 
         switch ($query) {
-            case Str::startsWith($query, '9') && strlen($query) == 9:
+            case Str::startsWith($query, '9') && strlen($query) == 9 && is_numeric($query):
                 $vcards = Vcard::where('phone_number', $query);
                 break;
             case Str::contains($query, '@'):
@@ -226,13 +226,19 @@ class VCardController extends Controller
             $vcards = $vcards->paginate(10);
         }
         
-        
+        if($vcards){
+            return response()->json([
+                'status' => 'success',
+                'message' => 'vcard retrieved successfully',
+                'data' => $vcards,
+                'last' => $vcards->lastPage(),
+            ], 200); // HTTP 200 OK
+        }
+
         return response()->json([
-            'status' => 'success',
-            'message' => 'vcard retrieved successfully',
-            'data' => $vcards,
-            'last' => $vcards->lastPage(),
-        ], 200); // HTTP 200 OK
+            'status' => 'error',
+            'message' => 'The vcard with that phone number does not exist',
+        ]);
     }
 
 

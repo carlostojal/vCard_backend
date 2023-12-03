@@ -36,8 +36,9 @@ Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
 Route::get('/vcards/search', [VCardController::class, 'indexBlocked']); //todos ou todos blocked ou todos unblocked
 Route::get('/transactions/search/{vcard}', [TransactionController::class, 'show']); //Returns all transactions of certain vcard
 Route::get('/transactions', [TransactionController::class, 'index']); //Returns all transactions
-Route::get('/transactions/type/search', [TransactionController::class, 'indexType']); //todos ou todos debit ou todos credit
+Route::get('/transactions/search', [TransactionController::class, 'indexType']); //todos ou todos debit ou todos credit
 Route::delete('/users/{id}', [UserController::class, 'destroy']); //Deletes user
+
 
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE

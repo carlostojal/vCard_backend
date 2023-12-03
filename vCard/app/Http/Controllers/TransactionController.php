@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use App\Models\Vcard;
+use App\Models\User;
 
 class TransactionController extends Controller
 {
@@ -22,9 +25,42 @@ class TransactionController extends Controller
         ], 200); // HTTP 200 OK
     }
 
-    public function show(string $phone_number){
+    public function show(string $query, Request $request){
 
-        $transactions = Transaction::where('vcard', $phone_number)->orderBy('date', 'desc')->paginate(10);
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:all,D,C',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        switch ($query){
+            case Str::startsWith($query, '9') && strlen($query) == 9 && is_numeric($query): //phone number
+                $transactions = Transaction::where('vcard', $query)->orderBy('datetime', 'desc');
+                break;
+            case Str::contains($query, '@'): //email
+                $phone = Vcard::where('email', $query)->select('phone_number');
+                $transactions = Transaction::where('vcard', $phone)->orderBy('datetime', 'desc');
+                
+                break;
+            default: //name
+                $phone = Vcard::where('name', 'LIKE', '%' . $query . '%')->pluck('phone_number');
+                $transactions = Transaction::whereIn('vcard', $phone)->orderBy('datetime', 'desc');
+                break;
+        }
+        
+
+        //Get the query allready filtered by name or phone or email and filter by blocked
+        if($request->type != 'all'){
+            $transactions = $transactions->where('type', $request->type)->paginate(10);
+        }else{
+            $transactions = $transactions->paginate(10);
+        }       
 
         if($transactions){
             return response()->json([
