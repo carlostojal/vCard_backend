@@ -6,20 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
 use App\Models\TransactionPiggyBank;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vcard extends Authenticatable
 {
-    use HasApiTokens, HasFactory;
+    use HasApiTokens, HasFactory, SoftDeletes;
 
     protected $guard = 'vcard';
     protected $primaryKey = 'phone_number';
+
+    protected $dates = ['deleted_at'];
 
     protected $hidden = [
         'password', 'confirmation_code', 'created_at', 'updated_at', 'deleted_at'
     ];
 
     //Relationships
-
     public function categories(){
         return $this->hasMany(Category::class, 'vcard', 'phone_number');
     }

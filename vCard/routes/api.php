@@ -39,6 +39,7 @@ Route::get('/transactions', [TransactionController::class, 'index']); //Returns 
 Route::get('/transactions/search', [TransactionController::class, 'indexType']); //todos ou todos debit ou todos credit
 Route::delete('/users/{id}', [UserController::class, 'destroy']); //Deletes user
 Route::put('/vcards/{phone_number}/{block}', [VCardController::class, 'changeBlock']); //Updates Block vcard
+Route::delete('/vcards/{phone_number}', [VCardController::class, 'deleteVcard']); //Deletes vcard
 
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE

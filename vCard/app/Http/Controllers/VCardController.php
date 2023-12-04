@@ -241,6 +241,46 @@ class VCardController extends Controller
         ]);
     }
 
+    public function deleteVcard(string $phone_number)
+    {
+        $validare = Validator::make(['phone_number' => $phone_number], [
+            'phone_number' => 'required|min:9',
+        ]);
+
+        if($validare->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validare->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        $vcard = Vcard::where('phone_number', $phone_number)->first();
+
+        if ($vcard) {
+
+            $transactions = Transaction::where('vcard', $phone_number)->orWhere('pair_vcard', $phone_number)->get();
+
+            //se tiver o balance a 0 e tiver transactions
+            if($vcard->balance == 0 && $transactions->count() > 0){
+                $vcard->delete();
+            }else{
+                $vcard->forceDelete();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'vcard deleted successfully',
+            ], 200); // HTTP 200 OK
+            
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'The vcard with that phone number does not exist',
+        ]);
+    }
+
 
     public function profile()
     {
