@@ -470,4 +470,26 @@ class VCardController extends Controller
         ]);
 
     }
+
+
+    public function deleteVcardMobile(){
+
+        $vcard = Auth::user();
+
+        if($vcard){
+
+            //$vcard->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'vcard deleted successfully',
+            ], 200); // HTTP 200 OK
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'The vcard does not exist',
+        ]);
+
+    }
 }

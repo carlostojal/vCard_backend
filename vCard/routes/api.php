@@ -69,6 +69,8 @@ Route::middleware('auth:vcard')->group(function () {
     Route::post('/vcards/send', [VcardController::class, 'send']);
     // Route::post('/vcards/logout', [AuthController::class, 'logout']);
 
+    Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard
+
     Route::resource('vcards', VCardController::class)->except('store');
 });
 
