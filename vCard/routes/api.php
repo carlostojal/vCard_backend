@@ -68,6 +68,8 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::post('/vcards/send', [VcardController::class, 'send']);
+
+    Route::get('/vcards/photo/', [VcardController::class, 'getPhoto']);
     // Route::post('/vcards/logout', [AuthController::class, 'logout']);
 
     Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard

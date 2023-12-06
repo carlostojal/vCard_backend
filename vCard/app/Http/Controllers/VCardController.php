@@ -14,15 +14,27 @@ use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Models\User;
 use App\Models\PiggyBank;
+use App\Services\ErrorService;
+use App\Services\ResponseService;
+use Illuminate\Http\Response;
 
 class VCardController extends Controller
 {
 
+    protected $errorService;
+    protected $responseService;
+
+    public function __construct(){
+        $this->errorService = new ErrorService();
+        $this->responseService = new ResponseService();
+
+    }
+
     public function index()
     {
-        
+
         $vcards = Vcard::paginate(10);
-        
+
         return response()->json([
             $vcards,
             'last' => $vcards->lastPage(),
@@ -49,7 +61,7 @@ class VCardController extends Controller
         }else{
             $vcards = Vcard::paginate(10);
         }
-        
+
         return response()->json([
             $vcards,
             'last' => $vcards->lastPage(),
@@ -99,7 +111,7 @@ class VCardController extends Controller
             if($request->hasFile('photo')){
                 $photo = $request->file('photo');
                 $photoName = $request->phone_number . time() . '.' . $photo->extension();
-                $photo->storeAs('vcard_photos',$photoName,'public');
+                $photo->storeAs('photos',$photoName,'public');
                 $vcard->photo_url = $photoName;
             }
             $vcard->confirmation_code = Hash::make($request->confirmation_code);
@@ -225,7 +237,7 @@ class VCardController extends Controller
         }else{
             $vcards = $vcards->paginate(10);
         }
-        
+
         if($vcards){
             return response()->json([
                 'status' => 'success',
@@ -272,7 +284,7 @@ class VCardController extends Controller
                 'status' => 'success',
                 'message' => 'vcard deleted successfully',
             ], 200); // HTTP 200 OK
-            
+
         }
 
         return response()->json([
@@ -285,19 +297,13 @@ class VCardController extends Controller
     public function profile()
     {
         $vcard = Auth::user();
-        return response()->json([
-            'status' => 'success',
-            'data' => $vcard,
-        ], 200);
+        return $this->responseService->sendWithDataResponse(200, null, $vcard);
     }
 
 
     public function getBalance(){
         $vcard = Auth::user();
-        return response()->json([
-            'status' => 'success',
-            'data' => $vcard->balance,
-        ], 200);
+        return $this->responseService->sendWithDataResponse(200, null, $vcard->balance);
     }
 
 
@@ -526,5 +532,21 @@ class VCardController extends Controller
             'data' => $vcard,
         ], 200); // HTTP 200 OK
 
+    }
+
+    public function getPhoto(Request $request){
+        $vcard = Auth::user();
+        $filePath = storage_path('app/public/photos'.$vcard->photo_url);
+
+        if (file_exists($filePath)) {
+            $headers = [
+                'Content-Type' => 'application/octet-stream',
+                'Content-Disposition' => 'attachment; filename="' . basename($filePath) . '"',
+            ];
+
+            return response()->download($filePath, 'photo.jpg', $headers);
+        } else {
+            return $this->errorService->sendStandardError(404, "File not found");
+        }
     }
 }
