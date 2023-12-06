@@ -492,4 +492,39 @@ class VCardController extends Controller
         ]);
 
     }
+
+
+    public function updateMaxDebit(Request $request, $id){
+
+        $validator = Validator::make(['max_debit' => $request->max_debit], [
+            'max_debit' => 'required|numeric|min:0',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        $vcard = Vcard::where('phone_number', $id)->first();
+
+        if($vcard){
+            $vcard->max_debit = $request->max_debit;
+            $vcard->save();
+        }else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The vcard with that phone number does not exist',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'vcard updated successfully',
+            'data' => $vcard,
+        ], 200); // HTTP 200 OK
+
+    }
 }
