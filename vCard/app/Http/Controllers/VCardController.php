@@ -428,10 +428,10 @@ class VCardController extends Controller
 
     }
 
-    public function changeBlock(String $phone_number, String $block){
+    public function changeBlock(String $phone_number, Request $request){
 
         //validar os inputs
-        $validator = Validator::make(['phone_number' => $phone_number, 'block' => $block], [
+        $validator = Validator::make(['phone_number' => $phone_number, 'block' => $request->block], [
             'phone_number' => 'required|min:9',
             'block' => 'required|in:0,1',
         ]);
@@ -448,14 +448,14 @@ class VCardController extends Controller
 
         if($vcard){
 
-            if($vcard->blocked == $block){
+            if($vcard->blocked == $request->block){
                 return response()->json([
                     'status' => 'error',
                     'message' => 'The vcard is already blocked/unblocked',
                 ], 400);
             }
 
-            $vcard->blocked = $block;
+            $vcard->blocked = $request->block;
             $vcard->save();
             return response()->json([
                 'status' => 'success',
