@@ -54,7 +54,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/testAdmin', function(){ return Auth::user(); });
     Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
 
-    
+
 
 
     Route::resource('users', UserController::class)->except('store');
@@ -73,7 +73,7 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/vcards/profile', [VCardController::class, 'profile']);
     Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
-    Route::post('/vcards/send', [VcardController::class, 'send']);
+    Route::post('/vcards/send', [VcardController::class, 'makeTransaction']);
 
     Route::get('/vcards/photo/', [VcardController::class, 'getPhotoUrl']);
     // Route::post('/vcards/logout', [AuthController::class, 'logout']);

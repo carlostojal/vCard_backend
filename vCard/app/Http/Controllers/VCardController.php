@@ -12,11 +12,9 @@ use Illuminate\Http\Request;
 use DateTime;
 use App\Models\Transaction;
 use App\Models\Vcard;
-use App\Models\User;
 use App\Models\PiggyBank;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
 class VCardController extends Controller
@@ -39,7 +37,7 @@ class VCardController extends Controller
         return response()->json([
             $vcards,
             'last' => $vcards->lastPage(),
-        ], 200); // HTTP 200 OK
+        ], 200);
     }
 
 
@@ -50,11 +48,7 @@ class VCardController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
         if($request->blocked != 'all'){
@@ -66,7 +60,7 @@ class VCardController extends Controller
         return response()->json([
             $vcards,
             'last' => $vcards->lastPage(),
-        ], 200); // HTTP 200 OK
+        ], 200);
 
     }
 
@@ -93,11 +87,8 @@ class VCardController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);         }
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
 
         $request->phone_number = $this->trimPortugueseCountryCode($request->phone_number);
 
@@ -108,7 +99,6 @@ class VCardController extends Controller
             $vcard->name = $request->name;
             $vcard->phone_number = $request->phone_number;
             $vcard->email = $request->email;
-            //$vcard->photo_url = $request->photo_url;
             if($request->hasFile('photo')){
                 $photo = $request->file('photo');
                 $photoName = $request->phone_number . "_" . time() . '.' . $photo->extension();
@@ -138,11 +128,7 @@ class VCardController extends Controller
                 ]
             ]);
         }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'The vcard with that phone number already exists'
-        ]);
+        return $this->errorService->sendStandardError(409, "The vcard with that phone number already exists");
     }
 
 
@@ -155,11 +141,7 @@ class VCardController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
         if (!Str::startsWith($request->phone_number, '9')) {
@@ -170,7 +152,7 @@ class VCardController extends Controller
             ], 422); // HTTP 422 Unprocessable Entity
         }
 
-        //This Function is for the mobile version make a register with minimum data (Phone Number, Password and Acess Code)
+        //This Function is for the mobile version make a register with minimum data (Phone Number, Password and Access Code)
         $vcard = Vcard::where('phone_number', $request->phone_number)->first();
         if (!$vcard) {
             $vcard = new VCard();
@@ -197,11 +179,7 @@ class VCardController extends Controller
                 ]
             ]);
         }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'The vcard with that phone number already exists'
-        ]);
+        return $this->errorService->sendStandardError(409, "The vcard with that phone number already exists");
     }
 
 
@@ -213,11 +191,7 @@ class VCardController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
         switch ($query) {
@@ -245,27 +219,19 @@ class VCardController extends Controller
                 'message' => 'vcard retrieved successfully',
                 'data' => $vcards,
                 'last' => $vcards->lastPage(),
-            ], 200); // HTTP 200 OK
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'The vcard with that phone number does not exist',
-        ]);
+            ], 200);
+       }
+        return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
     public function deleteVcard(string $phone_number)
     {
-        $validare = Validator::make(['phone_number' => $phone_number], [
+        $validator = Validator::make(['phone_number' => $phone_number], [
             'phone_number' => 'required|min:9',
         ]);
 
-        if($validare->fails()){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validare->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+        if($validator->fails()){
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
         $vcard = Vcard::where('phone_number', $phone_number)->first();
@@ -274,24 +240,15 @@ class VCardController extends Controller
 
             $transactions = Transaction::where('vcard', $phone_number)->orWhere('pair_vcard', $phone_number)->get();
 
-            //se tiver o balance a 0 e tiver transactions
             if($vcard->balance == 0 && $transactions->count() > 0){
                 $vcard->delete();
             }else{
                 $vcard->forceDelete();
             }
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'vcard deleted successfully',
-            ], 200); // HTTP 200 OK
+            return $this->responseService->sendStandardResponse(200, "vcard deleted successfully");
 
         }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'The vcard with that phone number does not exist',
-        ]);
+        return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
 
@@ -308,7 +265,7 @@ class VCardController extends Controller
     }
 
 
-    public function send(Request $request) //Transfer money to another vcard
+    public function makeTransaction(Request $request) //Transfer money to another vcard
     {
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|min:9',
@@ -319,55 +276,35 @@ class VCardController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
         if ($request->amount <= 0.00) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Amount needs to be greater than 0.00'
-            ], 400);
+            return $this->errorService->sendStandardError(422, "Amount needs to be greater than 0.00");
         }
+
         $vcard_origin = Auth::user();
+
         if ($vcard_origin->balance < $request->amount) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Amount needs to be lower than your balance'
-            ], 400);
+            return $this->errorService->sendStandardError(422, "Amount needs to be lower than your balance");
         }
 
         if ($vcard_origin->max_debit < $request->amount) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Amount needs to be lower than your max debit limit'
-            ], 400);
+            return $this->errorService->sendStandardError(422, "Amount needs to be lower than your max debit limit");
         }
 
         if (!Hash::check($request->confirmation_code, $vcard_origin->confirmation_code)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Incorrect Confimation Code'
-            ], 400);
+            return $this->errorService->sendStandardError(422, "Incorrect Confirmation Code");
         }
 
         $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
 
         if (!$vcard_destination) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Phone number does not exist'
-            ], 400);
+            return $this->errorService->sendStandardError(422, "Phone Number does not exist");
         }
 
         if ($vcard_origin->phone_number == $vcard_destination->phone_number) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You cant send money to yourself'
-            ], 400);
+            return $this->errorService->sendStandardError(422, "You cant send money to yourself");
         }
 
         //There are a lot of payment types so each one should follow a different logic
@@ -377,10 +314,7 @@ class VCardController extends Controller
                 break;
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Transaction Successfuly'
-        ], 200);
+        return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
     }
 
 
@@ -437,45 +371,27 @@ class VCardController extends Controller
 
     public function changeBlock(String $phone_number, Request $request){
 
-        //validar os inputs
         $validator = Validator::make(['phone_number' => $phone_number, 'block' => $request->block], [
             'phone_number' => 'required|min:9',
             'block' => 'required|in:0,1',
         ]);
 
         if($validator->fails()){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
         $vcard = Vcard::where('phone_number', $phone_number)->first();
 
         if($vcard){
-
             if($vcard->blocked == $request->block){
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'The vcard is already blocked/unblocked',
-                ], 400);
+                return $this->errorService->sendStandardError(400, "The vcard is already blocked/unblocked");
             }
 
             $vcard->blocked = $request->block;
             $vcard->save();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'vcard blocked successfully',
-                'data' => $vcard,
-            ], 200); // HTTP 200 OK
+            return $this->responseService->sendStandardResponse(200, "vcard blocked successfully");
         }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'The vcard with that phone number does not exist',
-        ]);
-
+        return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
 
@@ -484,19 +400,11 @@ class VCardController extends Controller
         $vcard = Auth::user();
 
         if($vcard){
-
             //$vcard->delete();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'vcard deleted successfully',
-            ], 200); // HTTP 200 OK
+            return $this->responseService->sendStandardResponse(200, "vcard deleted successfully");
         }
 
-        return response()->json([
-            'status' => 'error',
-            'message' => 'The vcard does not exist',
-        ]);
+        return $this->errorService->sendStandardError(404, "The vcard does not exist");
 
     }
 
@@ -508,12 +416,9 @@ class VCardController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+           return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
+
 
         $vcard = Vcard::where('phone_number', $id)->first();
 
@@ -521,17 +426,9 @@ class VCardController extends Controller
             $vcard->max_debit = $request->max_debit;
             $vcard->save();
         }else{
-            return response()->json([
-                'status' => 'error',
-                'message' => 'The vcard with that phone number does not exist',
-            ]);
+            return $this->errorService(404, "The vcard with that phone number does not exist");
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'vcard updated successfully',
-            'data' => $vcard,
-        ], 200); // HTTP 200 OK
+        return $this->responseService->sendStandardResponse(200, "vcard updated successfully");
 
     }
 
