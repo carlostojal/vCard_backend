@@ -17,6 +17,7 @@ use App\Models\PiggyBank;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class VCardController extends Controller
 {
@@ -110,8 +111,8 @@ class VCardController extends Controller
             //$vcard->photo_url = $request->photo_url;
             if($request->hasFile('photo')){
                 $photo = $request->file('photo');
-                $photoName = $request->phone_number . time() . '.' . $photo->extension();
-                $photo->storeAs('photos',$photoName,'public');
+                $photoName = $request->phone_number . "_" . time() . '.' . $photo->extension();
+                $photo->storeAs('fotos',$photoName,'public');
                 $vcard->photo_url = $photoName;
             }
             $vcard->confirmation_code = Hash::make($request->confirmation_code);
@@ -534,19 +535,12 @@ class VCardController extends Controller
 
     }
 
-    public function getPhoto(Request $request){
+    public function getPhotoUrl(){
         $vcard = Auth::user();
-        $filePath = storage_path('app/public/photos'.$vcard->photo_url);
-
-        if (file_exists($filePath)) {
-            $headers = [
-                'Content-Type' => 'application/octet-stream',
-                'Content-Disposition' => 'attachment; filename="' . basename($filePath) . '"',
-            ];
-
-            return response()->download($filePath, 'photo.jpg', $headers);
-        } else {
-            return $this->errorService->sendStandardError(404, "File not found");
+        if(Storage::exists("public/fotos/".$vcard->photo_url)){
+            $url = Storage::url("fotos/".$vcard->photo_url);
+            return $this->responseService->sendWithDataResponse(200, null, ['photo' => $url]);
         }
+        return $this->errorService->sendStandardError(404, "File not found");
     }
 }
