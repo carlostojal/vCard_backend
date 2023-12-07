@@ -58,4 +58,12 @@ class Vcard extends Authenticatable
     public function getAuthIdentifierName() {
         return "phone_number";
     }
+    //
+    // public function getProfilePhoto() {
+    //     $photo = $this->photo_url;
+    //     if($photo != null){
+    //         return asset("/public/vcard_photos/".$this->photo);
+    //     }else return null;
+    // }
+
 }
