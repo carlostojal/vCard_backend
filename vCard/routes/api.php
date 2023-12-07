@@ -30,7 +30,7 @@ Route::get('/Unauthenticated', function () {
 })->name('Unauthenticated');
 
 
-//COLOCAR DENTRO DO MIDDLEWARE DE AUTH
+//COLOCAR DENTRO DO MIDDLEWARE DE AUTH ADMIN
 Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
 Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
 Route::get('/vcards/search', [VCardController::class, 'indexBlocked']); //todos ou todos blocked ou todos unblocked
@@ -41,14 +41,20 @@ Route::delete('/users/{id}', [UserController::class, 'destroy']); //Deletes user
 Route::patch('/vcards/block/{phone_number}', [VCardController::class, 'changeBlock']); //Updates Block vcard
 Route::delete('/vcards/{phone_number}', [VCardController::class, 'deleteVcard']); //Deletes vcard
 Route::patch('vcards/maxDebit/{phone_number}', [VCardController::class, 'updateMaxDebit']); //Updates vcard max debit
+Route::get('/categories', [CategoryController::class, 'index']); //Returns all categories that exist in default categories
+Route::get('/categories/search', [CategoryController::class, 'indexType']); //Returns all categories that exist in default categories
+Route::get('/categories/search/{categorie}', [CategoryController::class, 'show']); //Returns the category
+Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions
+Route::post('/categories', [CategoryController::class, 'store']); //Creates a new category
+
+//Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions
 
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
     Route::get('/testAdmin', function(){ return Auth::user(); });
-    Route::get('/categories', [CategoryController::class, 'index']); //Returns all categories that exist in default categories
     Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
 
-
+    
 
 
     Route::resource('users', UserController::class)->except('store');

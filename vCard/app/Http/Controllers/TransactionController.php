@@ -78,6 +78,37 @@ class TransactionController extends Controller
         
     }
 
+    /*public function MyTransactionsType(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:all,D,C',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422); // HTTP 422 Unprocessable Entity
+        }
+
+        $vcard = Auth::user();
+
+        if($request->type != 'all'){
+            $transactions = $vcard->transactions()->where('type', $request->type)->orderBy('datetime', 'desc')->paginate(10);
+            //$transactions = Transaction::where('type', $request->type)->orderBy('datetime', 'desc')->paginate(10);
+        }else{
+            $transactions = $vcard->transactions()->orderBy('datetime', 'desc')->paginate(10);
+        }
+        
+        return response()->json([
+            $transactions,
+            'last' => $transactions->lastPage(),
+        ], 200); // HTTP 200 OK
+
+
+    }*/
+
     public function getMyTransactions() {
         $vcard = Auth::user();
         $transactions = $vcard->transactions()->orderBy('datetime', 'desc')->paginate(10);
