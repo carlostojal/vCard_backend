@@ -28,17 +28,17 @@ class VCardController extends Controller
         $this->responseService = new ResponseService();
 
     }
-
-    public function index()
-    {
-
-        $vcards = Vcard::paginate(10);
-
-        return response()->json([
-            $vcards,
-            'last' => $vcards->lastPage(),
-        ], 200);
-    }
+    //
+    // public function index()
+    // {
+    //
+    //     $vcards = Vcard::paginate(10);
+    //
+    //     return response()->json([
+    //         $vcards,
+    //         'last' => $vcards->lastPage(),
+    //     ], 200);
+    // }
 
 
     public function indexBlocked(Request $request){
@@ -56,11 +56,12 @@ class VCardController extends Controller
         }else{
             $vcards = Vcard::paginate(10);
         }
-
-        return response()->json([
-            $vcards,
-            'last' => $vcards->lastPage(),
-        ], 200);
+        //
+        // return response()->json([
+        //     $vcards,
+        //     'last' => $vcards->lastPage(),
+        // ], 200);
+        return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
 
     }
 
@@ -214,12 +215,13 @@ class VCardController extends Controller
         }
 
         if($vcards){
-            return response()->json([
-                'status' => 'success',
-                'message' => 'vcard retrieved successfully',
-                'data' => $vcards,
-                'last' => $vcards->lastPage(),
-            ], 200);
+       //      return response()->json([
+       //          'status' => 'success',
+       //          'message' => 'vcard retrieved successfully',
+       //          'data' => $vcards,
+       //          'last' => $vcards->lastPage(),
+       //      ], 200);
+            return $this->responseService->sendWithDataResponse(200, "vcard retrieved successfully", ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
        }
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
@@ -434,9 +436,11 @@ class VCardController extends Controller
 
     public function getPhotoUrl(){
         $vcard = Auth::user();
-        if(Storage::exists("public/fotos/".$vcard->photo_url)){
-            $url = Storage::url("fotos/".$vcard->photo_url);
-            return $this->responseService->sendWithDataResponse(200, null, ['photo' => $url]);
+        if($vcard->photo_url != null){
+            if(Storage::exists("public/fotos/".$vcard->photo_url)){
+                $url = Storage::url("fotos/".$vcard->photo_url);
+                return $this->responseService->sendWithDataResponse(200, null, ['photo' => $url]);
+            }
         }
         return $this->errorService->sendStandardError(404, "File not found");
     }
