@@ -124,5 +124,4 @@ class TransactionService
         }
     }
 
-    private function generate
 }
