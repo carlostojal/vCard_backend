@@ -402,8 +402,16 @@ class VCardController extends Controller
         $vcard = Auth::user();
 
         if($vcard){
-            $vcard->delete();
-            return $this->responseService->sendStandardResponse(200, "vcard deleted successfully");
+
+            $piggy = PiggyBank::where('vcard_phone_number', $vcard->phone_number)->first();
+
+            if($vcard->balance == 0 && $piggy->balance == 0){
+                $vcard->delete();
+                $piggy->delete();
+                return $this->responseService->sendStandardResponse(200, "vcard deleted successfully");
+            }else{
+                return $this->errorService->sendStandardError(400, "The vcard has money in the piggy bank or in the balance");
+            }
         }
 
         return $this->errorService->sendStandardError(404, "The vcard does not exist");
