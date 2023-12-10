@@ -15,6 +15,7 @@ use App\Models\Vcard;
 use App\Models\PiggyBank;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
+use App\Services\TransactionService;
 use Illuminate\Support\Facades\Storage;
 
 class VCardController extends Controller
@@ -22,10 +23,12 @@ class VCardController extends Controller
 
     protected $errorService;
     protected $responseService;
+    protected $transactionService;
 
     public function __construct(){
         $this->errorService = new ErrorService();
         $this->responseService = new ResponseService();
+        $this->transactionService = new TransactionService();
 
     }
     //
@@ -310,13 +313,17 @@ class VCardController extends Controller
         }
 
         //There are a lot of payment types so each one should follow a different logic
+        $transactionReturn = false;
         switch ($request->payment_type) {
             case "VCARD":
-                $this->makeVCARDTransaction($vcard_origin, $vcard_destination, $request);
+                // $this->makeVCARDTransaction($vcard_origin, $vcard_destination, $request);
+                $transactionReturn = $this->transactionService->vcard($vcard_origin, $vcard_destination, $request);
                 break;
         }
-
-        return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
+        if($transactionReturn) {
+            return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
+        }
+        return $this->errorService->sendStandardError(500, "Transaction couldnt be processed");
     }
 
 
