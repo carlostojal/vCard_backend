@@ -178,7 +178,7 @@ class VCardController extends Controller
                     $vcard, //alterar para so enviar os dados necessarios
                     $piggy_bank
                 ]
-            ]);
+            ]); 
         }
         return $this->errorService->sendStandardError(409, "The vcard with that phone number already exists");
     }
@@ -402,7 +402,7 @@ class VCardController extends Controller
         $vcard = Auth::user();
 
         if($vcard){
-            //$vcard->delete();
+            $vcard->delete();
             return $this->responseService->sendStandardResponse(200, "vcard deleted successfully");
         }
 
