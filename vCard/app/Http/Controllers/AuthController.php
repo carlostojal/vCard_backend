@@ -68,11 +68,8 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Form Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);         }
+            return $this->errorService->sendValidatorError(422, "Form Validation Failed", $validator->errors());
+        }
 
         $request->phone_number = $this->trimPortugueseCountryCode($request->phone_number);
 
@@ -110,11 +107,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+            return $this->errorService->sendValidatorError(422, "Form Validation Failed", $validator->errors());
         }
 
         $credentials = $request->only('email', 'password');
