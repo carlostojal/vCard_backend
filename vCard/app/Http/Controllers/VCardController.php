@@ -391,7 +391,14 @@ class VCardController extends Controller
 
             $vcard->blocked = $request->block;
             $vcard->save();
-            return $this->responseService->sendStandardResponse(200, "vcard blocked successfully");
+            
+            if($request->block == 1){
+                return $this->responseService->sendStandardResponse(200, "vcard blocked successfully");
+            }
+            if($request->block == 0){
+                return $this->responseService->sendStandardResponse(200, "vcard unblocked successfully");
+            }
+            
         }
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
