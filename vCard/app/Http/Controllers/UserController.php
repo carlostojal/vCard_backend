@@ -6,9 +6,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Services\ErrorService;
+use App\Services\ResponseService;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+
+    protected $errorService;
+    protected $responseService;
+
+    public function __construct()
+    {
+        $this->errorService = new ErrorService();
+        $this->responseService = new ResponseService();
+    }
+
 
     public function index()
     {
@@ -102,6 +115,11 @@ class UserController extends Controller
                 'message' => 'User could not be deleted',
             ], 500); // HTTP 500 Internal Server Error
         }
-        
+
+    }
+
+    public function profile(){
+        $user = Auth::user();
+        return $this->responseService->sendWithDataResponse(200, null, $user);
     }
 }

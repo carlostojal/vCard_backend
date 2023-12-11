@@ -153,9 +153,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'User Logged successfully',
-                'data' => [
-                    $responseData
-                ],
+                'data' => $responseData,
             ], 201);
         }
         // return response(['error' => 'Unauthorized, Wrong Credentials'], 401);

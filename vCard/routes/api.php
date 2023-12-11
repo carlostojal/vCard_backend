@@ -54,9 +54,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/testAdmin', function(){ return Auth::user(); });
     Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
 
-
-
-
+    Route::get('/users/profile', [UserController::class, 'profile']);
     Route::resource('users', UserController::class)->except('store');
     // Route::post('/users/logout', [AuthController::class, 'logout']);
 });
