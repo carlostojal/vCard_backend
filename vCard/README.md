@@ -7,6 +7,20 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Passport configuration
+
+⚠️ You need to configure passport in order to be able to obtain access tokens. This is an essential step. ⚠️
+
+- Install passport using `artisan passport:install`
+- Create a passport client for vCards `artisan passport:client --passport`
+    - Name the client `client_vcard`;
+    - Take note of the assigned ID and secret;
+    - Place the ID and secret on the `.env` file under `VCARD_CLIENT_ID` and `VCARD_CLIENT_SECRET`.
+- Create a passport client for users `artisan passport:client --passport`
+    - Name the client `client_user`;
+    - Take note of the assigned ID and secret;
+    - Place the ID and secret on the `.env` file under `USER_CLIENT_ID` and `USER_CLIENT_SECRET`.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
