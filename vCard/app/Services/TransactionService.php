@@ -6,10 +6,13 @@ use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Rules\IbanReference;
 use App\Rules\MbReference;
+use App\Rules\VisaReference;
+use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class TransactionService
@@ -28,7 +31,7 @@ class TransactionService
 
     private function postPaymentApiDebit(String $referenceType, String $reference, Float $value): bool {
         $res = $this->guzzleCLient->request('POST', $this->paymentApiUrl . '/debit', [
-            'form_params' => [
+            'json' => [
                 'type' => $referenceType,
                 'reference' => $reference,
                 'value' => $value,
@@ -37,22 +40,26 @@ class TransactionService
         if($res->getStatusCode() >= 200){
             return true;
         }else {
+
             return false;
         }
     }
 
     private function postPaymentApiCredit(String $referenceType, String $reference, Float $value): bool {
-        $res = $this->guzzleCLient->request('POST', $this->paymentApiUrl . '/credit', [
-            'form_params' => [
-                'type' => $referenceType,
-                'reference' => $reference,
-                'value' => $value,
-            ]
-        ]);
-        if($res->getStatusCode() >= 200){
-            return true;
+        try{
+            $res = $this->guzzleCLient->request('POST', $this->paymentApiUrl . '/credit', [
+                'json' => [
+                    'type' => $referenceType,
+                    'reference' => $reference,
+                    'value' => $value,
+                ]
+            ]);
+            if($res->getStatusCode() >= 200){
+                return true;
+            }
+        }catch(Exception $e){
+            return false;
         }
-        return false;
     }
 
     private function createTransaction(Vcard $vcard, String $type, Float $value, Float $newBalance,
@@ -160,10 +167,26 @@ class TransactionService
         return null;
     }
 
+    public function visa(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new VisaReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $error = $this->processTransaction($vcard_origin, $req, "VISA");
+        if($error){
+            return $error;
+        }
+        return null;
+    }
+
     private function processTransaction(Vcard $vcard, Request $req, String $paymentType){
-        // if ($this->postPaymentApiDebit($paymentType, $req->payment_reference, $req->amount) == false) {
-        //     return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
-        // }
+        if ($this->postPaymentApiCredit($paymentType, $req->payment_reference, $req->amount) == false) {
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+        }
 
         if ($this->makeDebitTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
             return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");

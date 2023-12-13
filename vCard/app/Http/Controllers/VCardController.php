@@ -322,6 +322,9 @@ class VCardController extends Controller
                 break;
             case "IBAN":
                 $transactionReturn = $this->transactionService->iban($vcard_origin, $request);
+            case "VISA":
+                $transactionReturn = $this->transactionService->visa($vcard_origin, $request);
+
         }
         if($transactionReturn != null){
             return $transactionReturn;
