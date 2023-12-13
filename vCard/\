@@ -137,38 +137,82 @@ class TransactionService
         }
     }
 
-    public function mb(Vcard $vcard_origin, Request $req, $transactionType){
-        return $this->make($vcard_origin, $req, $transactionType, new MbReference);
-    }
-
-    public function iban(Vcard $vcard_origin, Request $req, $transactionType){
-        return $this->make($vcard_origin, $req, $transactionType, new IbanReference);
-    }
-
-    public function visa(Vcard $vcard_origin, Request $req, $transactionType){
-        return $this->make($vcard_origin, $req, $transactionType, new VisaReference);
-    }
-
-    public function paypal(Vcard $vcard_origin, Request $req, $transactionType){
-        return $this->make($vcard_origin, $req, $transactionType, new PaypalReference);
-    }
-
-    public function mbway(Vcard $vcard, Request $req, $transactionType){
-        return $this->make($vcard, $req, $transactionType, new MbwayReference);
-    }
-
-    private function make(Vcard $vcard_origin, Request $req, $transactionType, $referenceRuleClass){
+    public function mb(Vcard $vcard_origin, Request $req){
         $validator = Validator::make($req->all(), [
-            'payment_reference' => ['required', $referenceRuleClass],
+            'payment_reference' => ['required', new MbReference],
         ]);
 
         if ($validator->fails()) {
             return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
-        if($transactionType == 'D'){
-            $error = $this->processDebitTransaction($vcard_origin, $req, $req->payment_type);
+
+        $error = $this->processDebitTransaction($vcard_origin, $req, "MB");
+        if ($error){
+            return $error;
+        }
+        return null;
+    }
+
+    public function iban(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new IbanReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $error = $this->processDebitTransaction($vcard_origin, $req, "IBAN");
+        if($error){
+            return $error;
+        }
+        return null;
+    }
+
+    public function visa(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new VisaReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $error = $this->processDebitTransaction($vcard_origin, $req, "VISA");
+        if($error){
+            return $error;
+        }
+        return null;
+    }
+
+    public function paypal(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new PaypalReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $error = $this->processDebitTransaction($vcard_origin, $req, "PAYPAL");
+        if($error){
+            return $error;
+        }
+        return null;
+    }
+
+    public function mbway(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new MbwayReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+        if($req->type == 'D'){
+            $error = $this->processDebitTransaction($vcard_origin, $req, "MBWAY");
         }elseif($req->type == 'C'){
-            $error = $this->processDebitTransaction($vcard_origin, $req, $req->payment_type);
+            $error = $this->processDebitTransaction($vcard_origin, $req, "MBWAY");
         }else {
             $error = $this->errorService->sendStandardError(500, 'Transacation type needs to be C or D');
         }

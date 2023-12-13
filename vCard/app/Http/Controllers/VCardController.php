@@ -319,19 +319,23 @@ class VCardController extends Controller
                 break;
 
             case "MB":
-                $transactionReturn = $this->transactionService->mb($vcard_origin, $request);
+                $transactionReturn = $this->transactionService->mb($vcard_origin, $request, 'D');
                 break;
 
             case "IBAN":
-                $transactionReturn = $this->transactionService->iban($vcard_origin, $request);
+                $transactionReturn = $this->transactionService->iban($vcard_origin, $request, 'D');
                 break;
 
             case "VISA":
-                $transactionReturn = $this->transactionService->visa($vcard_origin, $request);
+                $transactionReturn = $this->transactionService->visa($vcard_origin, $request, 'D');
                 break;
 
             case "PAYPAL":
-                $transactionReturn = $this->transactionService->paypal($vcard_origin, $request);
+                $transactionReturn = $this->transactionService->paypal($vcard_origin, $request, 'D');
+                break;
+
+            case "MBWAY":
+                $transactionReturn = $this->transactionService->mbway($vcard_origin, $request, 'D');
                 break;
 
             default:
