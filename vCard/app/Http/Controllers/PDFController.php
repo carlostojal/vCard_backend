@@ -8,6 +8,7 @@ use PDF;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Transaction;
 use App\Services\ErrorService;
+use App\Models\DefaultCategory;
 
 class PDFController extends Controller
 {
@@ -31,7 +32,6 @@ class PDFController extends Controller
         }
 
         $transactions = Transaction::whereMonth('date', '=', $request->month)->whereYear('date', '=', $request->year)->get();
-        //$transactions = Transaction::whereMonth('date', '=', $month)->get();
 
         $data = [
             'transactions' => $transactions,
@@ -50,7 +50,6 @@ class PDFController extends Controller
         return response($pdfContents, 200, [
             'Content-Type' => 'application/pdf',
         ]);
-
 
     }
 

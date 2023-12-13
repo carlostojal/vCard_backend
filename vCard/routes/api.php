@@ -56,7 +56,7 @@ Route::patch('vcards/maxDebit/{phone_number}', [VCardController::class, 'updateM
 Route::get('/categories', [CategoryController::class, 'index']); //Returns all categories that exist in default categories
 Route::get('/categories/search', [CategoryController::class, 'indexType']); //Returns all categories that exist in default categories
 Route::get('/categories/search/{categorie}', [CategoryController::class, 'show']); //Returns the category
-Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions
+//Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions
 Route::post('/categories', [CategoryController::class, 'store']); //Creates a new category
 
 //Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions

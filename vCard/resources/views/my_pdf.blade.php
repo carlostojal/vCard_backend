@@ -1,64 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Bank Transaction Extract</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styled Table</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        h1 {
-            color: #336699;
-        }
-        .transaction-table {
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-bottom: 20px;
         }
-        .transaction-table, .transaction-table th, .transaction-table td {
-            border: 1px solid #ddd;
-        }
-        .transaction-table th, .transaction-table td {
-            padding: 10px;
+
+        th, td {
+            border: 1px solid #dddddd;
             text-align: left;
+            padding: 8px;
         }
-        .transaction-table th {
+
+        th {
             background-color: #f2f2f2;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid #dddddd;
+            margin: 5px 0;
+        }
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #666;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Bank Transaction Extract</h1>
-    <p>Month: {{ $month }}</p>
 
-    <table class="transaction-table">
-        <thead>
+<h1>Transactions</h1>
+
+<h2>My Month: {{ $month }}</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Balance</th>
+            <th>Type</th>
+            <th>Payment Type</th>
+            <th>Recipient</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($transactions as $transaction)
             <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Old Balance</th>
-                <th>New Balance</th>
-                <th>Type</th>
-                <th>Payment Type</th>
-                <th>Category</th>
-                <th>Pair Vcard</th>
+                <td>{{ $transaction['date'] }}</td>
+                <td>{{ $transaction['description'] }}</td>
+                <td>€{{ number_format($transaction['value'], 2) }}</td>
+                <td>€{{ number_format($transaction['new_balance'], 2) }}</td>
+                @if($transaction['type'] == 'C')
+                    <td>Credit</td>
+                @else
+                    <td>Debit</td>
+                @endif
+                <td>{{ $transaction['payment_type'] }}</td>
+                <td>{{ $transaction['payment_reference'] }}</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach($transactions as $transaction)
-                <tr>
-                    <td>{{ $transaction['date'] }}</td>
-                    <td>{{ $transaction['description'] }}</td>
-                    <td>${{ number_format($transaction['amount'], 2) }}</td>
-                    <td>${{ number_format($transaction['old_balance'], 2) }}</td>
-                    <td>${{ number_format($transaction['new_balance'], 2) }}</td>
-                    <td>{{ $transaction['type'] }}</td>
-                    <td>{{ $transaction['payment_type'] }}</td>
-                    <td>{{ $transaction['category'] }}</td> 
-                    <td>{{ $transaction['pair_vcard'] }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+        @endforeach
+    </tbody>
+</table>
+
 </body>
 </html>
