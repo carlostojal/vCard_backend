@@ -22,7 +22,6 @@ class UserController extends Controller
         $this->responseService = new ResponseService();
     }
 
-
     public function index()
     {
         return User::all();
@@ -37,11 +36,7 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422); // HTTP 422 Unprocessable Entity
+            return $this->errorService->sendValidatorError(422, "Form Validation Failed", $validator->errors());
         }
 
         $user = new User();
@@ -50,26 +45,15 @@ class UserController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
         $token =  $user->createToken('API Token')->accessToken;
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User registered successfully',
-            'data' => [
-                // 'name' => $user->name,
-                // 'email' => $user->email,
-                'token' => $token
-            ],
-        ], 201); // HTTP 201 Created
+
+        return $this->responseService->sendWithDataResponse(201, 'User Registered Successfully', ['token' => $token]);
     }
 
     public function getAdmins(){
 
         $admins = User::where('name', 'like', 'Administrator%')->get();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Admins retrieved successfully',
-            'data' => $admins,
-        ], 200); // HTTP 200 OK
+        return $this->responseService->sendWithDataResponse(200, 'Admins retrieved successfully', $admins);
     }
 
     /**
@@ -96,24 +80,15 @@ class UserController extends Controller
         $user = User::where('id', $id)->first();
 
         if($user == null){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'User not found',
-            ], 404); // HTTP 404 Not Found
+            return $this->errorService->sendStandardError(404, 'User not found');
         }
 
         $res = $user->delete();
 
         if($res){
-            return response()->json([
-                'status' => 'success',
-                'message' => 'User deleted successfully',
-            ], 200); // HTTP 200 OK
+            return $this->responseService->sendStandardResponse(200, 'User deleted successfully');
         }else{
-            return response()->json([
-                'status' => 'error',
-                'message' => 'User could not be deleted',
-            ], 500); // HTTP 500 Internal Server Error
+            return $this->errorService->sendStandardError(500, 'User could not be deleted');
         }
 
     }
