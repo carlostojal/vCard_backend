@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\Transaction;
 use App\Models\Vcard;
+use App\Rules\IbanReference;
 use App\Rules\MbReference;
-use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -40,6 +40,7 @@ class TransactionService
             return false;
         }
     }
+
     private function postPaymentApiCredit(String $referenceType, String $reference, Float $value): bool {
         $res = $this->guzzleCLient->request('POST', $this->paymentApiUrl . '/credit', [
             'form_params' => [
@@ -50,12 +51,12 @@ class TransactionService
         ]);
         if($res->getStatusCode() >= 200){
             return true;
-        }else {
-            return false;
         }
+        return false;
     }
 
-    private function createTransaction(Vcard $vcard, $type, $value, $newBalance, $paymentType, $pairVcard, $reference, $description = null)
+    private function createTransaction(Vcard $vcard, String $type, Float $value, Float $newBalance,
+        String $paymentType, ?String $pairVcard, String $reference, ?String $description = null)
     {
         $dt = now();
 
@@ -77,6 +78,25 @@ class TransactionService
         }
         return $transaction;
     }
+
+    private function makeDebitTransaction(Vcard $vcard, Float $amount, String $paymentType, String $reference, ?String $description): bool{
+        try {
+            DB::beginTransaction();
+
+            $newBalance = ($vcard->balance - $amount);
+            $t = $this->createTransaction($vcard, 'D', $amount, $newBalance, $paymentType, null, $reference, $description);
+            $vcard->balance = $newBalance;
+            $vcard->save();
+            $t->save();
+
+            DB::commit();
+            return true;
+        }catch(QueryException $e) {
+            DB::rollBack();
+            return false;
+        }
+    }
+
 
     public function vcard(Vcard $vcard_origin, Vcard $vcard_destination, Request $req){
         try {
@@ -117,29 +137,38 @@ class TransactionService
             return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
-        try {
-            $res = $this->postPaymentApiDebit("MB", $req->payment_reference, $req->amount);
-            if($res == false){
-                return $this->errorService->sendStandardError(500, "Transaction couldn't be performed");
-            }
-            try {
-                DB::beginTransaction();
-
-                $origin_new_balance = ($vcard_origin->balance - $req->amount);
-                $t = $this->createTransaction($vcard_origin, 'D', $req->amount, $origin_new_balance, 'MB', null, $req->payment_reference, $req->description);
-                $vcard_origin->balance = $origin_new_balance;
-                $vcard_origin->save();
-                $t->save();
-
-                DB::commit();
-                return;
-            }catch(QueryException $e) {
-                DB::rollBack();
-                return $this->errorService->sendStandardError(500, "Transaction couldn't be performed");
-            }
-        }catch(Exception){
-            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed");
+        $error = $this->processTransaction($vcard_origin, $req, "MB");
+        if ($error){
+            return $error;
         }
+        return null;
     }
 
+    public function iban(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new IbanReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $error = $this->processTransaction($vcard_origin, $req, "IBAN");
+        if($error){
+            return $error;
+        }
+        return null;
+    }
+
+    private function processTransaction(Vcard $vcard, Request $req, String $paymentType){
+        // if ($this->postPaymentApiDebit($paymentType, $req->payment_reference, $req->amount) == false) {
+        //     return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+        // }
+
+        if ($this->makeDebitTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+        }
+
+        return null;
+    }
 }

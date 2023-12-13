@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use DateTime;
 use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Models\PiggyBank;
@@ -321,6 +320,8 @@ class VCardController extends Controller
             case "MB":
                 $transactionReturn = $this->transactionService->mb($vcard_origin, $request);
                 break;
+            case "IBAN":
+                $transactionReturn = $this->transactionService->iban($vcard_origin, $request);
         }
         if($transactionReturn != null){
             return $transactionReturn;
