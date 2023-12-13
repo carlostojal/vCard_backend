@@ -9,6 +9,7 @@ use App\Http\Controllers\VCardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\PiggyBankController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\PDFController;
 
 //Rotas específicas
 Route::post('/vcards/login', [AuthController::class, 'loginVcard']);
@@ -28,6 +29,10 @@ Route::get('/checkAuth', [AuthController::class, 'getAuthenticatedGuard']);
 Route::get('/Unauthenticated', function () {
     return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
 })->name('Unauthenticated');
+
+
+//PDF
+Route::get('/extract/pdf', [PDFController::class, 'index']);
 
 
 //COLOCAR DENTRO DO MIDDLEWARE DE AUTH ADMIN

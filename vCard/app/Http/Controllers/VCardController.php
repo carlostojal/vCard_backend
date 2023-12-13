@@ -459,4 +459,8 @@ class VCardController extends Controller
         }
         return $this->errorService->sendStandardError(404, "File not found");
     }
+
+    public function generatePDF(){
+        
+    }
 }
