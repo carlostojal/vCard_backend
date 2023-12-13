@@ -6,6 +6,7 @@ use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Rules\IbanReference;
 use App\Rules\MbReference;
+use App\Rules\PaypalReference;
 use App\Rules\VisaReference;
 use Exception;
 use GuzzleHttp\Client;
@@ -177,6 +178,38 @@ class TransactionService
         }
 
         $error = $this->processTransaction($vcard_origin, $req, "VISA");
+        if($error){
+            return $error;
+        }
+        return null;
+    }
+
+    public function paypal(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new PaypalReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $error = $this->processTransaction($vcard_origin, $req, "PAYPAL");
+        if($error){
+            return $error;
+        }
+        return null;
+    }
+
+    public function mbway(Vcard $vcard_origin, Request $req){
+        $validator = Validator::make($req->all(), [
+            'payment_reference' => ['required', new PaypalReference],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $error = $this->processTransaction($vcard_origin, $req, "mbway");
         if($error){
             return $error;
         }

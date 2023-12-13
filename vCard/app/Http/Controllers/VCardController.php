@@ -317,14 +317,26 @@ class VCardController extends Controller
             case "VCARD":
                 $transactionReturn = $this->transactionService->vcard($vcard_origin, $vcard_destination, $request);
                 break;
+
             case "MB":
                 $transactionReturn = $this->transactionService->mb($vcard_origin, $request);
                 break;
+
             case "IBAN":
                 $transactionReturn = $this->transactionService->iban($vcard_origin, $request);
+                break;
+
             case "VISA":
                 $transactionReturn = $this->transactionService->visa($vcard_origin, $request);
+                break;
 
+            case "PAYPAL":
+                $transactionReturn = $this->transactionService->paypal($vcard_origin, $request);
+                break;
+
+            default:
+                $transactionReturn = $this->errorService->sendStandardError(500, "The current payment method does not exist or is not supported");
+                break;
         }
         if($transactionReturn != null){
             return $transactionReturn;
