@@ -22,6 +22,12 @@ Route::post('/users', [UserController::class, 'store']);
 
 Route::middleware(['auth:api,vcard'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout']);
+
+
+    Route::get('/vcards/mycategories', [CategoryController::class, 'getMyCategoriesDAD']);
+    Route::post('/vcards/mycategories', [CategoryController::class, 'storeMyCategoriesDAD']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroyCategoriesDAD']);
+    Route::delete('/myCategories/{id}', [CategoryController::class, 'destroyMyCategoriesDAD']);
 });
 
 Route::get('/checkAuth', [AuthController::class, 'getAuthenticatedGuard']);
@@ -29,6 +35,7 @@ Route::get('/checkAuth', [AuthController::class, 'getAuthenticatedGuard']);
 Route::get('/Unauthenticated', function () {
     return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
 })->name('Unauthenticated');
+
 
 
 //PDF

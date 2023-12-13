@@ -4,12 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Validator;
 use App\Models\DefaultCategory;
+use App\Models\Category;
 use App\Models\Vcard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ErrorService;
+use App\Services\ResponseService;
 
 class CategoryController extends Controller
 {
+
+    protected $errorService;
+    protected $responseService;
+
+    public function __construct(){
+        $this->errorService = new ErrorService();
+        $this->responseService = new ResponseService();
+    }
+
     public function index(){
         $categories = DefaultCategory::paginate(15);
         return response()->json([
@@ -43,6 +55,29 @@ class CategoryController extends Controller
             'status' => 'success',
             'data' => $category,
         ], 201);
+    }
+
+    public function storeMyCategoriesDAD(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|unique:default_categories',
+            'type' => 'required|in:D,C',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid category',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $category = Category::create([
+            'vcard' => Auth::user()->phone_number,
+            'name' => $request->name,
+            'type' => $request->type,
+        ]);
+
+        return $this->responseService->sendWithDataResponse(200, null, ['category' => $category]);
     }
 
     public function indexType(Request $request){
@@ -122,11 +157,69 @@ class CategoryController extends Controller
         return $vcard->categories;
     }
 
+    public function getMyCategoriesDAD(){
+
+        $vcard = Auth::user();
+
+        $categories = $vcard->categories;
+
+        return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories]);
+    }
+
     public function getMyCategories(){
         $vcard = Auth::user();
+
         return response()->json([
             'status' => 'success',
             'data' => $vcard->categories,
         ], 200);
     }
+
+    public function destroyCategoriesDAD(int $id){
+
+        $validator = Validator::make(['id' => $id], [
+            'id' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $category = DefaultCategory::find($id);
+
+        if(!$category){
+            return $this->errorService->sendStandardError(404, "Category not found");
+        }
+
+        $category->delete();
+
+        return $this->responseService->sendStandardResponse(200, "Category deleted successfully");
+    }
+
+    public function destroyMyCategoriesDAD(int $id){
+
+        $validator = Validator::make(['id' => $id], [
+            'id' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        $category = Category::find($id);
+
+        if(!$category){
+            return $this->errorService->sendStandardError(404, "Category not found");
+        }
+
+        $category->delete();
+
+        return $this->responseService->sendStandardResponse(200, "Category deleted successfully");
+    }
+
+
+
+
+
+
 }
