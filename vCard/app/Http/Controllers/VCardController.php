@@ -58,17 +58,11 @@ class VCardController extends Controller
         }else{
             $vcards = Vcard::paginate(10);
         }
-        //
-        // return response()->json([
-        //     $vcards,
-        //     'last' => $vcards->lastPage(),
-        // ], 200);
         return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
 
     }
 
 
-    // trim the country code from the phone number string, in case it is provided
     private function trimPortugueseCountryCode($phoneNumber)
     {
         if (strpos($phoneNumber, '+351') === 0) {

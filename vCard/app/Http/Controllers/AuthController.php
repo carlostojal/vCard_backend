@@ -74,8 +74,7 @@ class AuthController extends Controller
         $request->phone_number = $this->trimPortugueseCountryCode($request->phone_number);
 
         $credentials = request(['phone_number', 'password']);
-        $vcard = Vcard::where('phone_number', $request->phone_number)->first();
-
+        $vcard = Vcard::find($request->phone_number);
         if(!$vcard) {
             return response()->json([
                 'status' => 'error',
