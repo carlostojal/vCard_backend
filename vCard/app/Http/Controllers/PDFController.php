@@ -31,7 +31,7 @@ class PDFController extends Controller
             return $this->errorService->sendError(422, "Validation Failed", $validator->errors());
         }
 
-        $transactions = Transaction::whereMonth('date', '=', $request->month)->whereYear('date', '=', $request->year)->get();
+        $transactions = Transaction::whereMonth('date', '=', $request->month)->whereYear('date', '=', $request->year)->take(200)->get();
 
         $data = [
             'transactions' => $transactions,
