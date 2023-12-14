@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use DateTime;
 use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Models\PiggyBank;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
+use App\Services\TransactionService;
 use Illuminate\Support\Facades\Storage;
 
 class VCardController extends Controller
@@ -22,10 +22,12 @@ class VCardController extends Controller
 
     protected $errorService;
     protected $responseService;
+    protected $transactionService;
 
     public function __construct(){
         $this->errorService = new ErrorService();
         $this->responseService = new ResponseService();
+        $this->transactionService = new TransactionService();
 
     }
     //
@@ -178,7 +180,7 @@ class VCardController extends Controller
                     $vcard, //alterar para so enviar os dados necessarios
                     $piggy_bank
                 ]
-            ]); 
+            ]);
         }
         return $this->errorService->sendStandardError(409, "The vcard with that phone number already exists");
     }
@@ -270,7 +272,7 @@ class VCardController extends Controller
     public function makeTransaction(Request $request) //Transfer money to another vcard
     {
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|min:9',
+            'phone_number' => 'min:9',
             'description' => '',
             'amount' => 'required|numeric',
             'confirmation_code' => 'required|min:3|max:4',
@@ -299,77 +301,53 @@ class VCardController extends Controller
             return $this->errorService->sendStandardError(422, "Incorrect Confirmation Code");
         }
 
-        $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
+        if($request->phone_number){
+            $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
 
-        if (!$vcard_destination) {
-            return $this->errorService->sendStandardError(422, "Phone Number does not exist");
+            if (!$vcard_destination) {
+                return $this->errorService->sendStandardError(422, "Phone Number does not exist");
+            }
+
+            if ($vcard_origin->phone_number == $vcard_destination->phone_number) {
+                return $this->errorService->sendStandardError(422, "You cant send money to yourself");
+            }
         }
-
-        if ($vcard_origin->phone_number == $vcard_destination->phone_number) {
-            return $this->errorService->sendStandardError(422, "You cant send money to yourself");
-        }
-
-        //There are a lot of payment types so each one should follow a different logic
+        $transactionReturn = null;
         switch ($request->payment_type) {
             case "VCARD":
-                $this->makeVCARDTransaction($vcard_origin, $vcard_destination, $request);
+                $transactionReturn = $this->transactionService->vcard($vcard_origin, $vcard_destination, $request);
+                break;
+
+            case "MB":
+                $transactionReturn = $this->transactionService->mb($vcard_origin, $request, 'D');
+                break;
+
+            case "IBAN":
+                $transactionReturn = $this->transactionService->iban($vcard_origin, $request, 'D');
+                break;
+
+            case "VISA":
+                $transactionReturn = $this->transactionService->visa($vcard_origin, $request, 'D');
+                break;
+
+            case "PAYPAL":
+                $transactionReturn = $this->transactionService->paypal($vcard_origin, $request, 'D');
+                break;
+
+            case "MBWAY":
+                $transactionReturn = $this->transactionService->mbway($vcard_origin, $request, 'D');
+                break;
+
+            default:
+                $transactionReturn = $this->errorService->sendStandardError(500, "The current payment method does not exist or is not supported");
                 break;
         }
-
+        if($transactionReturn != null){
+            return $transactionReturn;
+        }
         return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
     }
 
-
-    private function makeVCARDTransaction($vcard, $vcard2, $request)
-    {
-        $newBalance = $vcard->balance - $request->amount;
-        $newBalance2 = $vcard2->balance + $request->amount;
-
-        $trans = new Transaction();
-        $trans2 = new Transaction();
-
-        $trans->vcard = $vcard->phone_number;
-        $dt = new DateTime();
-        $trans->date = $dt->format('Y-m-d');
-        $trans->datetime = $dt->format('Y-m-d H:i:s');
-        $trans->type = 'D';
-        $trans->value = $request->amount;
-        $trans->old_balance = $vcard->balance;
-        $trans->new_balance = $newBalance;
-        $trans->payment_type = "VCARD";
-        if($request->description) $trans->description = $request->description;
-        $trans->pair_vcard = $vcard2->phone_number;
-        $trans->payment_reference = $vcard2->phone_number;
-
-        $trans2->vcard = $vcard2->phone_number;
-        $trans2->date = $dt->format('Y-m-d');
-        $trans2->datetime = $dt->format('Y-m-d H:i:s');
-        $trans2->type = 'C';
-        $trans2->value = $request->amount;
-        $trans2->old_balance = $vcard2->balance;
-        $trans2->new_balance = $newBalance2;
-        $trans2->payment_type = "VCARD";
-        $trans2->pair_vcard = $vcard->phone_number;
-        if($request->description) $trans2->description = $request->description;
-        $trans->payment_reference = $vcard2->phone_number;
-        $trans2->payment_reference = $vcard->phone_number;
-
-        $trans->save();
-        $trans2->save();
-
-        $trans->pair_transaction = $trans2->id;
-        $trans2->pair_transaction = $trans->id;
-
-        $vcard->balance = $newBalance;
-        $vcard2->balance = $newBalance2;
-
-        $vcard->save();
-        $vcard2->save();
-
-        $trans->save();
-        $trans2->save();
-
-    }
 
     public function changeBlock(String $phone_number, Request $request){
 
@@ -391,14 +369,14 @@ class VCardController extends Controller
 
             $vcard->blocked = $request->block;
             $vcard->save();
-            
+
             if($request->block == 1){
                 return $this->responseService->sendStandardResponse(200, "vcard blocked successfully");
             }
             if($request->block == 0){
                 return $this->responseService->sendStandardResponse(200, "vcard unblocked successfully");
             }
-            
+
         }
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
