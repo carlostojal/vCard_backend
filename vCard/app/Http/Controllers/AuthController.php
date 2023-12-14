@@ -74,7 +74,7 @@ class AuthController extends Controller
         $request->phone_number = $this->trimPortugueseCountryCode($request->phone_number);
 
         $credentials = request(['phone_number', 'password']);
-        $vcard = Vcard::where('phone_number', $request->phone_number)->first();
+        $vcard = Vcard::find($request->phone_number);
         if(!$vcard) {
             return response()->json([
                 'status' => 'error',
@@ -82,6 +82,11 @@ class AuthController extends Controller
                 'errors' => 'Phone Number Not found',
             ], 404);
         }
+
+        if($vcard->blocked == 1){
+            return $this->errorService->sendStandardError(422, "vCard is blocked");
+        }
+
         if(Hash::check($request->password, $vcard->password)){
             $oauthData = $this->AddAuthDataVcard($request->phone_number, $request->password);
             request()->request->add($oauthData);

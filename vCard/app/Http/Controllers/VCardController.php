@@ -58,17 +58,11 @@ class VCardController extends Controller
         }else{
             $vcards = Vcard::paginate(10);
         }
-        //
-        // return response()->json([
-        //     $vcards,
-        //     'last' => $vcards->lastPage(),
-        // ], 200);
         return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
 
     }
 
 
-    // trim the country code from the phone number string, in case it is provided
     private function trimPortugueseCountryCode($phoneNumber)
     {
         if (strpos($phoneNumber, '+351') === 0) {
@@ -437,4 +431,72 @@ class VCardController extends Controller
         }
         return $this->errorService->sendStandardError(404, "File not found");
     }
+
+    public function verifyPassword(Request $request){
+        
+        $validator = Validator::make($request->all(), [
+            'pass' => 'required|string',
+        ]);
+
+        if($validator->fails()){
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        if(Hash::check($request->pass, Auth::user()->password)){
+            return $this->responseService->sendStandardResponse(200, "Password is correct");
+        }
+
+        return $this->errorService->sendStandardError(400, "Password is incorrect");
+    }
+
+    public function verifyPin(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'pin' => 'required|string',
+        ]);
+
+        if($validator->fails()){
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        if(Hash::check($request->pin, Auth::user()->confirmation_code)){
+            return $this->responseService->sendStandardResponse(200, "Pin is correct");
+        }
+
+        return $this->errorService->sendStandardError(400, "Pin is incorrect");
+    }
+
+    public function deleteOwnVcard(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'pass' => 'required',
+            'pin' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        if(Hash::check($request->pass, Auth::user()->password) && Hash::check($request->pin, Auth::user()->confirmation_code)){
+            $vcard = Auth::user();
+
+            if($vcard->balance != 0){
+                return $this->errorService->sendStandardError(400, "You have money in your balance");
+            }
+
+            $transactions = Transaction::where('vcard', $vcard->phone_number)->orWhere('pair_vcard', $vcard->phone_number)->get();
+            if($transactions->count() == 0){
+                $vcard->forceDelete();
+            }else{
+                $vcard->delete();
+            }
+
+            return $this->responseService->sendStandardResponse(200, "Vcard deleted successfully");
+
+        }else{
+            return $this->errorService->sendStandardError(400, "Password or Pin is incorrect");
+        }
+
+    }
+
 }
