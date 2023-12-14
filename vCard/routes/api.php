@@ -88,6 +88,8 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/myTransactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']); //Returns all transactions of certain vcard | email | name
     Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions with type (Credit or Debit)
 
+    Route::post('/vcards/verifyPassword', [VcardController::class, 'verifyPassword']);
+    
     Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard
 
     Route::resource('vcards', VCardController::class)->except('store');

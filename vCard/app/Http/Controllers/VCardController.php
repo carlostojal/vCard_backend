@@ -438,7 +438,22 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "File not found");
     }
 
-    public function generatePDF(){
+    public function verifyPassword(Request $request){
         
+        $validator = Validator::make($request->all(), [
+            'password' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        if(HASH::check($request->password, Auth::user()->password)){
+            return $this->responseService->sendStandardResponse(200, "Password is correct");
+        }
+
+        return $this->errorService->sendStandardError(400, "Password is incorrect");
+
+
     }
 }
