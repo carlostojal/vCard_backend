@@ -345,9 +345,9 @@ class VCardController extends Controller
         if($transactionReturn != null){
             return $transactionReturn;
         }
+        //return $this->responseService->sendWithDataResponse(200, "Transaction Successfully", $vcard_origin->balance);
         return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
     }
-
 
     public function changeBlock(String $phone_number, Request $request){
 
@@ -381,7 +381,6 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
-
     public function deleteVcardMobile(){
 
         $vcard = Auth::user();
@@ -402,7 +401,6 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "The vcard does not exist");
 
     }
-
 
     public function updateMaxDebit(Request $request, $id){
 

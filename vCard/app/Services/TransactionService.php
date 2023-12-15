@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Transaction;
 use App\Models\Vcard;
+use App\Models\PiggyBank;
 use App\Rules\IbanReference;
 use App\Rules\MbReference;
 use App\Rules\MbwayReference;
@@ -16,6 +17,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Services\ErrorService;
+use App\Services\ResponseService;
 
 class TransactionService
 {
@@ -112,6 +115,27 @@ class TransactionService
             DB::beginTransaction();
 
             $origin_new_balance = ($vcard_origin->balance - $req->amount);
+
+            //Se tiver flag para o arredondamento do amount para o piggybank - TAES
+            if($req->flagRestPiggyBank){
+                
+                //Arredonda o amount para o piggybank
+                $restMoney = round(ceil($req->amount) - $req->amount, 2);
+                
+                //Se o vcard ficar com 0 de saldo
+                if($restMoney > 0){
+                    $origin_new_balance = $origin_new_balance - $restMoney; //Tira o dinheiro que vai para o piggybank
+
+                    $piggibank = PiggyBank::where('vcard_phone_number', $vcard_origin->phone_number)->first();
+                    $piggibank->balance = $piggibank->balance + $restMoney;
+                    $piggibank->save();
+
+                }else{
+                    return $this->errorService->sendStandardError(400, "Unable to round the amount to the piggybank");
+                }
+            }
+
+
             $destination_new_balance = ($vcard_destination->balance + $req->amount);
 
             $t1 = $this->createTransaction($vcard_origin, 'D', $req->amount, $origin_new_balance, 'VCARD', $vcard_destination->phone_number, $vcard_destination->phone_number, $req->description);
