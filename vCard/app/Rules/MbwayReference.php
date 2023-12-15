@@ -13,7 +13,7 @@ class MbwayReference implements ValidationRule
             $fail('Malformed reference, must be 9 digits long');
         }
 
-        if($value[0] != 9){
+        if(str($value)[0] !== '9'){
             $fail('Malformed reference, must start with 9');
         }
 
