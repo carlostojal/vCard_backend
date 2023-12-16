@@ -25,8 +25,7 @@ class TransactionController extends Controller
 
     }
 
-    public function index()
-    {
+    public function index(){
         $transactions = Transaction::orderBy('date', 'desc')->paginate(10);
 
         // return response()->json([
@@ -36,6 +35,21 @@ class TransactionController extends Controller
         //     'last' => $transactions->lastPage(),
         // ], 200); // HTTP 200 OK
         return $this->responseService->sendWithDataResponse(200, "All Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
+    }
+
+    public function show(int $id){
+        $transaction = Transaction::find($id);
+
+        if($transaction){
+            $vcard = Auth::user();
+            if(!$vcard->transactions()->where('id', $id)->exists()){
+                return $this->errorService->sendStandardError(403, "You are not authorized to view this transaction");
+            }
+
+            return $this->responseService->sendWithDataResponse(200, "Transaction retrieved successfully", ['transaction' => $transaction]);
+        }
+
+        return $this->errorService->sendStandardError(404, "Transaction not found");
     }
 
     public function indexAllTransactions_search(string $query, Request $request){
@@ -137,12 +151,7 @@ class TransactionController extends Controller
     public function getMyTransactions() {
         $vcard = Auth::user();
         $transactions = $vcard->transactions()->orderBy('datetime', 'desc')->paginate(10);
-        // $transformedTransactions = TransactionResource::collection($transactions);
 
-        // return response()->json([
-        //     $transactions,
-        //     'last' => $transactions->lastPage(),
-        // ], 200); // HTTP 200 OK
 
         return $this->responseService->sendWithDataResponse(200, null, ["transactions" => $transactions, "last" => $transactions->lastPage()]);
 

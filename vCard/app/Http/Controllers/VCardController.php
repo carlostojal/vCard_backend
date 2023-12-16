@@ -339,7 +339,7 @@ class VCardController extends Controller
         if($transactionReturn != null){
             return $transactionReturn;
         }
-        //return $this->responseService->sendWithDataResponse(200, "Transaction Successfully", $vcard_origin->balance);
+        
         return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
     }
 

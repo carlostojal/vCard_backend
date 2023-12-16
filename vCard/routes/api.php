@@ -92,8 +92,10 @@ Route::middleware('auth:vcard')->group(function () {
     Route::post('/vcards/verifyPassword', [VcardController::class, 'verifyPassword']); //Verifies password
     Route::post('/vcards/verifyPin', [VcardController::class, 'verifyPin']); //Verifies pin
     Route::delete('/ownVcard', [VcardController::class, 'deleteOwnVcard']); //Deletes own vcard
+    Route::get('/transactions/{id}', [TransactionController::class, 'show']); //Returns the transaction
 
-    Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard
+
+    Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard 
 
     Route::resource('vcards', VCardController::class)->except('store');
 });

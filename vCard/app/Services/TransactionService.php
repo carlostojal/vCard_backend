@@ -122,16 +122,15 @@ class TransactionService
                 //Arredonda o amount para o piggybank
                 $restMoney = round(ceil($req->amount) - $req->amount, 2);
                 
-                //Se o vcard ficar com 0 de saldo
-                if($restMoney > 0){
-                    $origin_new_balance = $origin_new_balance - $restMoney; //Tira o dinheiro que vai para o piggybank
+                //Se o vcard não ficar com 0 de saldo
+                if($vcard_origin->balance != $req->amount){
+                    if($restMoney > 0){
+                        $origin_new_balance = $origin_new_balance - $restMoney; //Tira o dinheiro que vai para o piggybank
 
-                    $piggibank = PiggyBank::where('vcard_phone_number', $vcard_origin->phone_number)->first();
-                    $piggibank->balance = $piggibank->balance + $restMoney;
-                    $piggibank->save();
-
-                }else{
-                    return $this->errorService->sendStandardError(400, "Unable to round the amount to the piggybank");
+                        $piggibank = PiggyBank::where('vcard_phone_number', $vcard_origin->phone_number)->first();
+                        $piggibank->balance = $piggibank->balance + $restMoney;
+                        $piggibank->save();
+                    }
                 }
             }
 
