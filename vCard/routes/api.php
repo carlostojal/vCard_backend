@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\VCardController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\PiggyBankController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PDFController;
@@ -38,12 +39,21 @@ Route::get('/Unauthenticated', function () {
 })->name('Unauthenticated');
 
 
+Route::get('/statistics/DebitPerMonth', [StatisticsController::class, 'getStatisticsDebitPerMonth']);
+Route::get('/statistics/DebitPerYear', [StatisticsController::class, 'getStatisticsDebitPerYear']);
 
+Route::get('/statistics/CreditPerMonth', [StatisticsController::class, 'getStatisticsCreditPerMonth']);
+Route::get('/statistics/CreditPerYear', [StatisticsController::class, 'getStatisticsCreditPerYear']);
+
+Route::get('/statistics/MoneySpentPerCard', [StatisticsController::class, 'getMoneySpentPerCardType']);
+Route::get('/statistics/MoneyReceivedPerCard', [StatisticsController::class, 'getMoneyReceivedPerCardType']);
+Route::get('/statistics/CategoriesSpent', [StatisticsController::class, 'getMoneySpentByCategories']);
+Route::get('/statistics/CategoriesReceived', [StatisticsController::class, 'getMoneyReceivedByCategories']);
 
 //COLOCAR DENTRO DO MIDDLEWARE DE AUTH ADMIN
 Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
 Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
-Route::get('/vcards/search', [VCardController::class, 'indexBlocked']); //todos ou todos blocked ou todos unblocked 
+Route::get('/vcards/search', [VCardController::class, 'indexBlocked']); //todos ou todos blocked ou todos unblocked
 Route::get('/transactions/search/{query}', [TransactionController::class, 'indexAllTransactions_search']); //Returns all transactions of certain vcard | email | name
 Route::get('/transactions', [TransactionController::class, 'index']); //Returns all transactions
 Route::get('/transactions/search', [TransactionController::class, 'indexAllTransactions_type']); //todos ou todos debit ou todos credit
@@ -61,7 +71,7 @@ Route::post('/categories', [CategoryController::class, 'store']); //Creates a ne
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
     Route::get('/testAdmin', function(){ return Auth::user(); });
-    Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard 
+    Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
 
     Route::get('/users/profile', [UserController::class, 'profile']);
     Route::resource('users', UserController::class)->except('store');
@@ -81,14 +91,14 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::post('/vcards/send', [VcardController::class, 'makeTransaction']);
-    
+
 
     Route::get('/vcards/photo/', [VcardController::class, 'getPhotoUrl']);
     // Route::post('/vcards/logout', [AuthController::class, 'logout']);
 
     Route::get('/myTransactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']); //Returns all transactions of certain vcard | email | name
     Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions with type (Credit or Debit)
-    
+
     Route::post('/vcards/verifyPassword', [VcardController::class, 'verifyPassword']); //Verifies password
     Route::post('/vcards/verifyPin', [VcardController::class, 'verifyPin']); //Verifies pin
     Route::delete('/ownVcard', [VcardController::class, 'deleteOwnVcard']); //Deletes own vcard
