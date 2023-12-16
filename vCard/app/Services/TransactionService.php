@@ -4,21 +4,19 @@ namespace App\Services;
 
 use App\Models\Transaction;
 use App\Models\Vcard;
-use App\Models\PiggyBank;
 use App\Rules\IbanReference;
 use App\Rules\MbReference;
 use App\Rules\MbwayReference;
 use App\Rules\PaypalReference;
 use App\Rules\VisaReference;
-use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
+use Exception;
 
 class TransactionService
 {
@@ -109,6 +107,24 @@ class TransactionService
         }
     }
 
+    private function makeCreditTransaction(Vcard $vcard, Float $amount, String $paymentType, String $reference, ?String $description): bool{
+        try {
+            DB::beginTransaction();
+
+            $newBalance = ($vcard->balance + $amount);
+            $t = $this->createTransaction($vcard, 'C', $amount, $newBalance, $paymentType, null, $reference, $description);
+            $vcard->balance = $newBalance;
+            $vcard->save();
+            $t->save();
+
+            DB::commit();
+            return true;
+        }catch(QueryException $e) {
+            DB::rollBack();
+            return false;
+        }
+    }
+
 
     public function vcard(Vcard $vcard_origin, Vcard $vcard_destination, Request $req){
         try {
@@ -118,10 +134,10 @@ class TransactionService
 
             //Se tiver flag para o arredondamento do amount para o piggybank - TAES
             if($req->flagRestPiggyBank){
-                
+
                 //Arredonda o amount para o piggybank
                 $restMoney = round(ceil($req->amount) - $req->amount, 2);
-                
+
                 //Se o vcard não ficar com 0 de saldo
                 if($vcard_origin->balance != $req->amount){
                     if($restMoney > 0){
@@ -160,8 +176,8 @@ class TransactionService
         }
     }
 
-    public function mb(Vcard $vcard_origin, Request $req, $transactionType){
-        return $this->make($vcard_origin, $req, $transactionType, new MbReference);
+    public function mb(Vcard $vcard, Request $req, $transactionType){
+        return $this->make($vcard, $req, $transactionType, new MbReference);
     }
 
     public function iban(Vcard $vcard_origin, Request $req, $transactionType){
@@ -190,8 +206,8 @@ class TransactionService
         }
         if($transactionType == 'D'){
             $error = $this->processDebitTransaction($vcard_origin, $req, $req->payment_type);
-        }elseif($req->type == 'C'){
-            $error = $this->processDebitTransaction($vcard_origin, $req, $req->payment_type);
+        }elseif($transactionType == 'C'){
+            $error = $this->processCreditTransaction($vcard_origin, $req, $req->payment_type);
         }else {
             $error = $this->errorService->sendStandardError(500, 'Transacation type needs to be C or D');
         }
@@ -207,6 +223,18 @@ class TransactionService
         }
 
         if ($this->makeDebitTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+        }
+
+        return null;
+    }
+
+    private function processCreditTransaction(Vcard $vcard, Request $req, String $paymentType){
+        if ($this->postPaymentApiDebit($paymentType, $req->payment_reference, $req->amount) == false) {
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+        }
+
+        if ($this->makeCreditTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
             return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
         }
 

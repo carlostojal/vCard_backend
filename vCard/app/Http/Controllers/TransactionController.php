@@ -2,38 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\TransactionResource;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Vcard;
-use App\Models\User;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
+use App\Services\TransactionService;
 
 class TransactionController extends Controller
 {
 
     protected $errorService;
     protected $responseService;
+    protected $transactionService;
 
     public function __construct(){
         $this->errorService = new ErrorService();
         $this->responseService = new ResponseService();
-
+        $this->transactionService = new TransactionService();
     }
 
     public function index(){
         $transactions = Transaction::orderBy('date', 'desc')->paginate(10);
-
-        // return response()->json([
-        //     'status' => 'success',
-        //     'message' => 'All Transactions retrieved successfully',
-        //     'data' => $transactions,
-        //     'last' => $transactions->lastPage(),
-        // ], 200); // HTTP 200 OK
         return $this->responseService->sendWithDataResponse(200, "All Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
     }
 
@@ -156,7 +149,7 @@ class TransactionController extends Controller
         return $this->responseService->sendWithDataResponse(200, null, ["transactions" => $transactions, "last" => $transactions->lastPage()]);
 
     }
- 
+
     public function indexAllTransactions_type(Request $request){
 
         $validator = Validator::make($request->all(), [
@@ -174,14 +167,61 @@ class TransactionController extends Controller
             $transactions = Transaction::orderBy('datetime', 'desc')->paginate(10);
         }
 
-        // return response()->json([
-        //     $transactions,
-        //     'last' => $transactions->lastPage(),
-        // ], 200); // HTTP 200 OK
-
         return $this->responseService->sendWithDataResponse(200, null, ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
-
     }
 
+    public function creditVcard(Request $request){
+        $validator = Validator::make($request->all(), [
+            'vcard' => 'min:9',
+            'amount' => 'required|numeric',
+            'payment_type' => ['required', 'in:MBWAY,PAYPAL,IBAN,MB,VISA'],
+        ]);
 
+        if ($validator->fails()) {
+            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        if ($request->amount <= 0.00) {
+            return $this->errorService->sendStandardError(422, "Amount needs to be greater than 0.00");
+        }
+
+        $vcard = Vcard::find($request->vcard);
+        // $vcard_destination = Vcard::where('phone_number', $request->phone_number)->first();
+        if(!$vcard) {
+            return $this->errorService->sendStandardError(404, "Vcard not found");
+        }
+
+        $transactionReturn = null;
+        switch ($request->payment_type) {
+            case "MB":
+                $transactionReturn = $this->transactionService->mb($vcard, $request, 'C');
+                break;
+
+            case "IBAN":
+                $transactionReturn = $this->transactionService->iban($vcard, $request, 'C');
+                break;
+
+            case "VISA":
+                $transactionReturn = $this->transactionService->visa($vcard, $request, 'C');
+                break;
+
+            case "PAYPAL":
+                $transactionReturn = $this->transactionService->paypal($vcard, $request, 'C');
+                break;
+
+            case "MBWAY":
+                $transactionReturn = $this->transactionService->mbway($vcard, $request, 'C');
+                break;
+
+            default:
+                $transactionReturn = $this->errorService->sendStandardError(500, "The current payment method does not exist or is not supported");
+                break;
+        }
+        if($transactionReturn != null){
+            return $transactionReturn;
+        }
+
+        return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
+
+    }
 }
