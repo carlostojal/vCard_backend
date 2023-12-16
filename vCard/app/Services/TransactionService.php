@@ -17,40 +17,31 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
 use Exception;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 
 class TransactionService
 {
     protected $errorService;
     protected $responseService;
-    protected $guzzleCLient;
+    protected $guzzleClient;
     protected $paymentApiUrl;
+    protected $errorMessage;
 
     public function __construct(){
         $this->errorService = new ErrorService();
         $this->responseService = new ResponseService();
-        $this->guzzleCLient = new Client();
+        $this->guzzleClient = new Client();
         $this->paymentApiUrl = env('PAYMENT_API_URL');
     }
 
-    private function postPaymentApiDebit(String $referenceType, String $reference, Float $value): bool {
-        $res = $this->guzzleCLient->request('POST', $this->paymentApiUrl . '/debit', [
-            'json' => [
-                'type' => $referenceType,
-                'reference' => $reference,
-                'value' => $value,
-            ]
-        ]);
-        if($res->getStatusCode() >= 200){
-            return true;
-        }else {
-
-            return false;
-        }
+    private function setErrorMessage($e){
+        $this->errorMessage = json_decode($e->getResponse()->getBody()->getContents(), true)['message'];
     }
 
-    private function postPaymentApiCredit(String $referenceType, String $reference, Float $value): bool {
-        try{
-            $res = $this->guzzleCLient->request('POST', $this->paymentApiUrl . '/credit', [
+    private function postPaymentApiDebit(String $referenceType, String $reference, Float $value): bool {
+        try {
+            $res = $this->guzzleClient->request('POST', $this->paymentApiUrl . '/debit', [
                 'json' => [
                     'type' => $referenceType,
                     'reference' => $reference,
@@ -59,6 +50,29 @@ class TransactionService
             ]);
             if($res->getStatusCode() >= 200){
                 return true;
+            }else {
+                $this->errorMessage = $res->message;
+                return false;
+            }
+        }catch(ClientException $e){
+            $this->setErrorMessage($e);
+            return false;
+        }
+    }
+
+    private function postPaymentApiCredit(String $referenceType, String $reference, Float $value): bool {
+        try{
+            $res = $this->guzzleClient->request('POST', $this->paymentApiUrl . '/credit', [
+                'json' => [
+                    'type' => $referenceType,
+                    'reference' => $reference,
+                    'value' => $value,
+                ]
+            ]);
+            if($res->getStatusCode() >= 200){
+                return true;
+            }else {
+                return false;
             }
         }catch(Exception $e){
             return false;
@@ -218,24 +232,26 @@ class TransactionService
     }
 
     private function processDebitTransaction(Vcard $vcard, Request $req, String $paymentType){
+        $this->errorMessage = null;
         if ($this->postPaymentApiCredit($paymentType, $req->payment_reference, $req->amount) == false) {
-            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 
         if ($this->makeDebitTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
-            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 
         return null;
     }
 
     private function processCreditTransaction(Vcard $vcard, Request $req, String $paymentType){
+        $this->errorMessage = null;
         if ($this->postPaymentApiDebit($paymentType, $req->payment_reference, $req->amount) == false) {
-            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 
         if ($this->makeCreditTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
-            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error");
+            return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 
         return null;

@@ -17,13 +17,6 @@ class ErrorService
 
     public function sendValidatorError(int $httpStatusCode, string $message, MessageBag $validatorErrors): JsonResponse
     {
-        // return response()->json([
-        //     'status' => 'error',
-        //     'message' => $message,
-        //     'errors' => $validatorErrors
-        // ], $httpStatusCode);
-
-
         $response = [
             'status' => 'error',
             'errors' => $validatorErrors,
