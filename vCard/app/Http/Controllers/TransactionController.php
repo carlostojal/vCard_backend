@@ -25,8 +25,27 @@ class TransactionController extends Controller
         $this->transactionService = new TransactionService();
     }
 
-    private function applyTransactionFilters(array $transactions, Request $request){
-
+    private function applyTransactionFilters($transactions, Request $request){
+        if($request->has('type')){
+            $transactions->where('type', $request->type);
+        }
+        if($request->has('vcard')){
+            $transactions->where('vcard', $request->vcard);
+        }
+        if($request->has('pair_vcard')){
+            $phone = null;
+            if (filter_var($request->pair_vcard, FILTER_VALIDATE_EMAIL)) {
+                $phone = Vcard::where('email', $request->pair_vcard)->select('phone_number');
+            }elseif(is_numeric($request->pair_vcard)){
+                $phone = Vcard::where('phone_number', $request->pair_vcard)->select('phone_number');
+            }elseif(is_string($request->pair_vcard)){
+                $phone = Vcard::where('name', $request->pair_vcard)->select('phone_number');
+            }
+            if($phone != null){
+                $transactions->where('pair_vcard', $phone);
+            }
+        }
+        return $transactions;
     }
 
     public function index(?Vcard $vcard = null, Request $request){
@@ -35,153 +54,21 @@ class TransactionController extends Controller
             $vcard = $user;
         }
         if($vcard){
-            $transactions = $vcard->transactions()->orderBy('date', 'desc');
+            $transactions = $vcard->transactions()->orderBy('datetime', 'desc');
         }
-        $transactions = Transaction::orderBy('date', 'desc');
+        $transactions = Transaction::orderBy('datetime', 'desc');
 
         if($request->all() != null){
             $transactions = $this->applyTransactionFilters($transactions, $request);
         }
+        $transactions = $transactions->paginate(10);
         return $this->responseService->sendWithDataResponse(200, "All Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
     }
 
     public function show(Request $request, Transaction $transaction){
-
-        // $transaction = Transaction::find();
-        // if($transaction){
-        //     // $vcard = Auth::user();
-        //     if(!$vcard->transactions()->where('id', $id)->exists()){
-        //         return $this->errorService->sendStandardError(403, "You are not authorized to view this transaction");
-        //     }
-        //
         return $this->responseService->sendWithDataResponse(200, "Transaction retrieved successfully", ['transaction' => $transaction]);
-        // return $this->errorService->sendStandardError(404, "Transaction not found");
     }
 
-    public function indexAllTransactions_search(string $query, Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:all,D,C',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-        switch ($query){
-            case Str::startsWith($query, '9') && strlen($query) == 9 && is_numeric($query): //phone number
-                $transactions = Transaction::where('vcard', $query)->orderBy('datetime', 'desc');
-                break;
-            case Str::contains($query, '@'): //email
-                $phone = Vcard::where('email', $query)->select('phone_number');
-                $transactions = Transaction::where('vcard', $phone)->orderBy('datetime', 'desc');
-
-                break;
-            default: //name
-                $phone = Vcard::where('name', 'LIKE', '%' . $query . '%')->pluck('phone_number');
-                $transactions = Transaction::whereIn('vcard', $phone)->orderBy('datetime', 'desc');
-                break;
-        }
-
-        if($request->type != 'all'){
-            $transactions = $transactions->where('type', $request->type)->paginate(10);
-        }else{
-            $transactions = $transactions->paginate(10);
-        }
-
-        if($transactions){
-            return $this->responseService->sendWithDataResponse(200, "Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
-        }
-        return $this->errorService->sendStandardError(404, "The vcard with that phone number does not have any transactions");
-
-    }
-
-    public function indexMyTransactions_search(string $query, Request $request){
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:all,D,C',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-        $vcard = Auth::user();
-
-        switch ($query){
-            case Str::startsWith($query, '9') && strlen($query) == 9 && is_numeric($query): //phone number
-                $transactions = $vcard->transactions()->where('pair_vcard', $query)->orderBy('datetime', 'desc');
-                break;
-            case Str::contains($query, '@'): //email
-                $phone = Vcard::where('email', $query)->select('phone_number');
-                $transactions = $vcard->transactions()->where('pair_vcard', $phone)->orderBy('datetime', 'desc');
-                break;
-            default: //name
-                $phone = Vcard::where('name', 'LIKE', '%' . $query . '%')->pluck('phone_number');
-                $transactions = $vcard->transactions()->whereIn('pair_vcard', $phone)->orderBy('datetime', 'desc');
-                break;
-        }
-
-        if($request->type != 'all'){
-            $transactions = $transactions->where('type', $request->type)->paginate(10);
-        }else{
-            $transactions = $transactions->paginate(10);
-        }
-
-        if($transactions){
-            return $this->responseService->sendWithDataResponse(200, "Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
-        }
-        return $this->errorService->sendStandardError(404, "The vcard with that phone number does not have any transactions");
-    }
-
-    public function MyTransactionsType(Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:all,D,C',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendStandardError(422, $validator->errors());
-        }
-
-        $vcard = Auth::user();
-
-        if($request->type != 'all'){
-            $transactions = $vcard->transactions()->where('type', $request->type)->orderBy('datetime', 'desc')->paginate(10);
-        }else{
-            $transactions = $vcard->transactions()->orderBy('datetime', 'desc')->paginate(10);
-        }
-
-        return $this->responseService->sendWithDataResponse(200, null, ["transactions" => $transactions, "last" => $transactions->lastPage()]);
-    }
-
-    public function getMyTransactions() {
-        $vcard = Auth::user();
-        $transactions = $vcard->transactions()->orderBy('datetime', 'desc')->paginate(10);
-
-
-        return $this->responseService->sendWithDataResponse(200, null, ["transactions" => $transactions, "last" => $transactions->lastPage()]);
-
-    }
-
-    public function indexAllTransactions_type(Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:all,D,C',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-
-        if($request->type != 'all'){
-            $transactions = Transaction::where('type', $request->type)->orderBy('datetime', 'desc')->paginate(10);
-        }else{
-            $transactions = Transaction::orderBy('datetime', 'desc')->paginate(10);
-        }
-
-        return $this->responseService->sendWithDataResponse(200, null, ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
-    }
 
     public function creditVcard(Request $request){
         $validator = Validator::make($request->all(), [
