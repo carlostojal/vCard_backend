@@ -35,17 +35,12 @@ class VCardController extends Controller
         $this->transactionService = new TransactionService();
 
     }
-    //
-    // public function index()
-    // {
-    //
-    //     $vcards = Vcard::paginate(10);
-    //
-    //     return response()->json([
-    //         $vcards,
-    //         'last' => $vcards->lastPage(),
-    //     ], 200);
-    // }
+
+    public function index(Vcard $vcard)
+    {
+        $vcards = Vcard::paginate(10);
+        return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
+    }
 
 
     public function indexBlocked(Request $request){
@@ -185,7 +180,11 @@ class VCardController extends Controller
     }
 
 
-    public function show(string $query, Request $request)
+    public function show(Vcard $vcard){
+        return $this->responseService->sendWithDataResponse(200, null, $vcard);
+    }
+
+    public function show_2(string $query, Request $request)
     {
 
         $validator = Validator::make($request->all(), [

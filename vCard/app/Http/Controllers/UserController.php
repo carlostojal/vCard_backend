@@ -59,9 +59,9 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        //
+        return $this->responseService->sendWithDataResponse(200, null, $user);
     }
 
     /**
@@ -93,8 +93,7 @@ class UserController extends Controller
 
     }
 
-    public function profile(){
-        $user = Auth::user();
+    public function profile(User $user){
         return $this->responseService->sendWithDataResponse(200, null, $user);
     }
 }

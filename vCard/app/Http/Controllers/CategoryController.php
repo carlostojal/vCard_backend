@@ -22,14 +22,47 @@ class CategoryController extends Controller
         $this->responseService = new ResponseService();
     }
 
-    public function index(){
-        $categories = DefaultCategory::paginate(15);
-        return response()->json([
-            'status' => 'success',
-            'data' => $categories,
-            'lastPage' => $categories->lastPage(),
+    public function index(Vcard $vcard){
+        if($vcard){
+            $categories = $vcard->categories()->paginate(15);
+            return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
+        }
+        // $categories = DefaultCategory::paginate(15);
+        $categories = Category::paginate(15);
+        return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
+    }
+
+    public function show(String $query, Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:D,C,all',
         ]);
-        // return $categories;
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid type',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if($request->type == 'all'){
+            $categories = DefaultCategory::where('name', 'like', '%'.$query.'%')->paginate(15);
+            return response()->json([
+                'status' => 'success',
+                'data' => $categories,
+                'lastPage' => $categories->lastPage(),
+            ]);
+        }else{
+            $type = $request->query('type');
+            $categories = DefaultCategory::where('name', 'like', '%'.$query.'%')->where('type', $type)->paginate(15);
+            return response()->json([
+                'status' => 'success',
+                'data' => $categories,
+                'lastPage' => $categories->lastPage(),
+            ]);
+        }
+
     }
 
     public function store(Request $request){
@@ -113,38 +146,7 @@ class CategoryController extends Controller
 
     }
 
-    public function show(String $query, Request $request){
 
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:D,C,all',
-        ]);
-
-        if($validator->fails()){
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid type',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        if($request->type == 'all'){
-            $categories = DefaultCategory::where('name', 'like', '%'.$query.'%')->paginate(15);
-            return response()->json([
-                'status' => 'success',
-                'data' => $categories,
-                'lastPage' => $categories->lastPage(),
-            ]);
-        }else{
-            $type = $request->query('type');
-            $categories = DefaultCategory::where('name', 'like', '%'.$query.'%')->where('type', $type)->paginate(15);
-            return response()->json([
-                'status' => 'success',
-                'data' => $categories,
-                'lastPage' => $categories->lastPage(),
-            ]);
-        }
-
-    }
 
     public function getAllFromVcard(Vcard $vcard){
         //this error response is not working yet

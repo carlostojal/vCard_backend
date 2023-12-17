@@ -25,16 +25,20 @@ class TransactionController extends Controller
         $this->transactionService = new TransactionService();
     }
 
-    public function index(){
+    public function index(Request $request, ?Vcard $vcard = null){
+        if($vcard){
+            $transactions = $vcard->transactions()->paginate(10);
+            return $this->responseService->sendWithDataResponse(200, "Vcard Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
+        }
         $transactions = Transaction::orderBy('date', 'desc')->paginate(10);
         return $this->responseService->sendWithDataResponse(200, "All Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
     }
 
-    public function show(int $id){
-        $transaction = Transaction::find($id);
+    public function show(Request $request, Transaction $transaction){
+        $transaction = Transaction::find();
 
         if($transaction){
-            $vcard = Auth::user();
+            // $vcard = Auth::user();
             if(!$vcard->transactions()->where('id', $id)->exists()){
                 return $this->errorService->sendStandardError(403, "You are not authorized to view this transaction");
             }
