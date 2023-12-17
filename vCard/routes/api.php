@@ -28,26 +28,6 @@ Route::get('/Unauthenticated', function () {
 })->name('Unauthenticated');
 
 
-Route::middleware(['auth:api,vcard'])->group(function () {
-    Route::get('/logout', [AuthController::class, 'logout']);
-
-    // Route::get('/extract/pdf', [PDFController::class, 'index']);
-
-    // Route::get('/vcards/mycategories', [CategoryController::class, 'getMyCategoriesDAD']); //Returns vcard's categories
-    // Route::post('/vcards/mycategories', [CategoryController::class, 'storeMyCategoriesDAD']); //Creates a new category in vcard
-    // Route::delete('/myCategories/{id}', [CategoryController::class, 'destroyMyCategoriesDAD']); //Deletes a category in vcard
-    // Route::get('/vcards/{vcard}/transactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']);
-    Route::resource('/vcards.transactions', TransactionController::class);
-    Route::resource('/vcards/transactions', TransactionController::class);
-
-
-    Route::resource('/vcards.categories', CategoryController::class);
-    Route::resource('/vcards/categories', CategoryController::class);
-
-    Route::resource('vcards', VCardController::class)->except('store');
-
-    Route::resource('categories', CategoryController::class);
-});
 
 // Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
 // Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
@@ -69,9 +49,12 @@ Route::middleware(['auth:api,vcard'])->group(function () {
 Route::middleware('auth:api')->group(function () {
     // Route::post('/users/credit-vcard', [TransactionController::class, 'creditVcard']);
     // Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
-    Route::get('/users/{user}/profile', [UserController::class, 'profile']);
+    Route::get('/vcards/{vcard}/photo/', [VcardController::class, 'getPhotoUrl']);
 
     // Route::post('/users', [UserController::class, 'store']);
+
+    Route::get('/users/{user}/profile', [UserController::class, 'profile']);
+
     Route::resource('default-categories', DefaultCategoryController::class);
     Route::resource('users', UserController::class);
 });
@@ -98,10 +81,7 @@ Route::middleware('auth:vcard')->group(function () {
     // Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
     // // Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::post('/vcards/send', [VcardController::class, 'makeTransaction']);
-    //
-    //
     Route::get('/vcards/photo/', [VcardController::class, 'getPhotoUrl']);
-    //
     // Route::get('/myTransactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']); //Returns all transactions of certain vcard | email | name
     // Route::get('/vcards/transactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']);
     // Route::get('/vcards/myTransactions', [TransactionController::class, 'MyTransactionsType']); //Returns vcard's transactions with type (Credit or Debit)
@@ -118,10 +98,28 @@ Route::middleware('auth:vcard')->group(function () {
     // Route::get('/transactions/{id}', [TransactionController::class, 'show']); //Returns the transaction
 
     // Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']);
-
-    // Route::resource('vcards', VCardController::class)->except('store');
 });
 
+
+Route::middleware(['auth:api,vcard'])->group(function () {
+    Route::get('/logout', [AuthController::class, 'logout']);
+
+    // Route::get('/extract/pdf', [PDFController::class, 'index']);
+
+    // Route::get('/vcards/mycategories', [CategoryController::class, 'getMyCategoriesDAD']); //Returns vcard's categories
+    // Route::post('/vcards/mycategories', [CategoryController::class, 'storeMyCategoriesDAD']); //Creates a new category in vcard
+    // Route::delete('/myCategories/{id}', [CategoryController::class, 'destroyMyCategoriesDAD']); //Deletes a category in vcard
+    // Route::get('/vcards/{vcard}/transactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']);
+    Route::resource('/vcards.transactions', TransactionController::class);
+    Route::resource('/vcards/transactions', TransactionController::class);
+
+
+    Route::resource('/vcards.categories', CategoryController::class);
+    Route::resource('/vcards/categories', CategoryController::class);
+
+    Route::resource('vcards', VCardController::class)->except('store');
+    Route::resource('categories', CategoryController::class);
+});
 
 Route::fallback(function () {
     return response()->json(['status' => 'error', 'message' => 'Route not found'], 404);

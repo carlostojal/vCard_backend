@@ -23,6 +23,10 @@ class CategoryController extends Controller
     }
 
     public function index(?Vcard $vcard = null){
+        $user = Auth::user();
+        if($user instanceof Vcard){
+            $vcard = $user;
+        }
         if($vcard){
             $categories = $vcard->categories()->paginate(15);
             return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);

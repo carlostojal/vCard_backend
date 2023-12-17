@@ -38,6 +38,10 @@ class VCardController extends Controller
 
     public function index(Vcard $vcard)
     {
+        $user = Auth::user();
+        if($user != null && $user instanceof Vcard){
+            return $this->show($user);
+        }
         $vcards = Vcard::paginate(10);
         return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
     }
@@ -181,6 +185,14 @@ class VCardController extends Controller
 
 
     public function show(Vcard $vcard){
+        // $user = Auth::user();
+        // if($vcard == null){
+        //     if($user != null && $user instanceof Vcard){
+        //         $vcard = $user;
+        //     }else {
+        //         return $this->errorService->sendStandardError(404, 'User not found');
+        //     }
+        // }
         return $this->responseService->sendWithDataResponse(200, null, $vcard);
     }
 
@@ -246,20 +258,6 @@ class VCardController extends Controller
         }
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
-
-
-    public function profile()
-    {
-        $vcard = Auth::user();
-        return $this->responseService->sendWithDataResponse(200, null, $vcard);
-    }
-
-
-    public function getBalance(){
-        $vcard = Auth::user();
-        return $this->responseService->sendWithDataResponse(200, null, $vcard->balance);
-    }
-
 
     public function makeTransaction(Request $request) //Transfer money to another vcard
     {
@@ -417,8 +415,15 @@ class VCardController extends Controller
 
     }
 
-    public function getPhotoUrl(){
-        $vcard = Auth::user();
+    public function getPhotoUrl(?Vcard $vcard = null){
+        if($vcard == null){
+            $user = Auth::user();
+            if($user instanceof Vcard){
+                $vcard = $user;
+            }else {
+                return $this->errorService->sendStandardError(401, 'Your not a vcard user');
+            }
+        }
         if($vcard->photo_url != null){
             if(Storage::exists("public/fotos/".$vcard->photo_url)){
                 $url = Storage::url("fotos/".$vcard->photo_url);

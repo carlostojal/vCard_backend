@@ -25,28 +25,37 @@ class TransactionController extends Controller
         $this->transactionService = new TransactionService();
     }
 
-    public function index(Request $request, ?Vcard $vcard = null){
-        if($vcard){
-            $transactions = $vcard->transactions()->paginate(10);
-            return $this->responseService->sendWithDataResponse(200, "Vcard Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
+    private function applyTransactionFilters(array $transactions, Request $request){
+
+    }
+
+    public function index(?Vcard $vcard = null, Request $request){
+        $user = Auth::user();
+        if($user instanceof Vcard && $vcard == null){
+            $vcard = $user;
         }
-        $transactions = Transaction::orderBy('date', 'desc')->paginate(10);
+        if($vcard){
+            $transactions = $vcard->transactions()->orderBy('date', 'desc');
+        }
+        $transactions = Transaction::orderBy('date', 'desc');
+
+        if($request->all() != null){
+            $transactions = $this->applyTransactionFilters($transactions, $request);
+        }
         return $this->responseService->sendWithDataResponse(200, "All Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
     }
 
     public function show(Request $request, Transaction $transaction){
-        $transaction = Transaction::find();
 
-        if($transaction){
-            // $vcard = Auth::user();
-            if(!$vcard->transactions()->where('id', $id)->exists()){
-                return $this->errorService->sendStandardError(403, "You are not authorized to view this transaction");
-            }
-
-            return $this->responseService->sendWithDataResponse(200, "Transaction retrieved successfully", ['transaction' => $transaction]);
-        }
-
-        return $this->errorService->sendStandardError(404, "Transaction not found");
+        // $transaction = Transaction::find();
+        // if($transaction){
+        //     // $vcard = Auth::user();
+        //     if(!$vcard->transactions()->where('id', $id)->exists()){
+        //         return $this->errorService->sendStandardError(403, "You are not authorized to view this transaction");
+        //     }
+        //
+        return $this->responseService->sendWithDataResponse(200, "Transaction retrieved successfully", ['transaction' => $transaction]);
+        // return $this->errorService->sendStandardError(404, "Transaction not found");
     }
 
     public function indexAllTransactions_search(string $query, Request $request){
