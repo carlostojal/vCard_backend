@@ -30,6 +30,7 @@ Route::middleware(['auth:api,vcard'])->group(function () {
     Route::get('/vcards/mycategories', [CategoryController::class, 'getMyCategoriesDAD']); //Returns vcard's categories
     Route::post('/vcards/mycategories', [CategoryController::class, 'storeMyCategoriesDAD']); //Creates a new category in vcard
     Route::delete('/myCategories/{id}', [CategoryController::class, 'destroyMyCategoriesDAD']); //Deletes a category in vcard
+    Route::resource('vcards', VCardController::class)->except('store');
 });
 
 Route::get('/checkAuth', [AuthController::class, 'getAuthenticatedGuard']);
@@ -109,10 +110,9 @@ Route::middleware('auth:vcard')->group(function () {
     Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard
 
     // Route::patch('/vcards/{vcard}', [VCardController::class, 'update']);
-    Route::resource('vcards', VCardController::class)->except('store');
+    // Route::resource('vcards', VCardController::class)->except('store');
 });
 
-Route::resource('vcards', VCardController::class)->except('store');
 
 Route::fallback(function () {
     return response()->json(['status' => 'error', 'message' => 'Route not found'], 404);

@@ -429,14 +429,13 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "File not found");
     }
 
-    public function update(Request $req, $id){
+    public function update(Request $req, Vcard $vcard){
         if($req->all() == null){
-            return $this->errorService->sendStandardError(422, 'Request body was enpty');
+            return $this->errorService->sendStandardError(422, 'Request body was empty');
         }
-        // if(Auth::user()->cannot('update', 'vcard')
-        $this->authorize('update', $id);
+        $this->authorize('update', $vcard);
 
-        $vcard = Vcard::find($id);
+        // $vcard = Vcard::find($id);
         if(!$vcard){
             return $this->errorService->sendStandardError(404, 'vCard not found');
         }

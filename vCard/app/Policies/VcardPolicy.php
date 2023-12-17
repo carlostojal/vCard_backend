@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Validator;
 
 class VcardPolicy
 {
-    public function update(Vcard $user, Vcard $vcard): bool{
-        if($user->anInstanceOf(User::class)){
+    public function update($user, Vcard $vcard): bool{
+        if($user instanceof User){
             $validator = Validator::make(request()->all(), [
                 'phone_number' => 'prohibited',
                 'name' => 'prohibited',
@@ -26,7 +26,7 @@ class VcardPolicy
             }
         }
 
-        if($user->anInstanceOf(Vcard::class)){
+        if($user instanceof Vcard){
             $validator = Validator::make(request()->all(), [
                 'phone_number' => 'sometimes|numeric|unique:vcards,phone_number,max:999999999',
                 'name' => 'sometimes|string|unique:vcards,name',
@@ -38,11 +38,11 @@ class VcardPolicy
                 'max_debit' => 'prohibited',
             ]);
 
-            if(!$validator->fails() && $vcard == $user){
+            if(!$validator->fails() && $vcard->phone_number == $user->phone_number){
                 return true;
             }
-        }
 
-        return true;
+        }
+        return false;
     }
 }
