@@ -26,7 +26,7 @@ class TransactionController extends Controller
     }
 
     private function applyTransactionFilters($transactions, Request $request){
-        if($request->has('type')){
+        if($request->has('type') && $request->type != 'all'){
             $transactions->where('type', $request->type);
         }
         if($request->has('vcard')){
@@ -39,28 +39,30 @@ class TransactionController extends Controller
             }elseif(is_numeric($request->pair_vcard)){
                 $phone = Vcard::where('phone_number', $request->pair_vcard)->select('phone_number');
             }elseif(is_string($request->pair_vcard)){
-                $phone = Vcard::where('name', $request->pair_vcard)->select('phone_number');
+                $phone = Vcard::where('name','LIKE', '%' . $request->pair_vcard . '%')->select('phone_number');
             }
             if($phone != null){
-                $transactions->where('pair_vcard', $phone);
+                $transactions->whereIn('pair_vcard', $phone);
             }
         }
         return $transactions;
     }
 
-    public function index(?Vcard $vcard = null, Request $request){
+    public function index(Request $request, ?Vcard $vcard = null){
         $user = Auth::user();
-        if($user instanceof Vcard && $vcard == null){
+        if($user instanceof Vcard && !$vcard){
             $vcard = $user;
         }
         if($vcard){
-            $transactions = $vcard->transactions()->orderBy('datetime', 'desc');
+            $transactions = $vcard->transactions();
+        }else{
+            $transactions = Transaction::all();
         }
-        $transactions = Transaction::orderBy('datetime', 'desc');
 
         if($request->all() != null){
             $transactions = $this->applyTransactionFilters($transactions, $request);
         }
+        $transactions->orderBy('datetime', 'desc');
         $transactions = $transactions->paginate(10);
         return $this->responseService->sendWithDataResponse(200, "All Transactions retrieved successfully", ['transactions' => $transactions, 'last' => $transactions->lastPage()]);
     }

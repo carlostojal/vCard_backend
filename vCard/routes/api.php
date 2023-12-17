@@ -119,6 +119,7 @@ Route::middleware(['auth:api,vcard'])->group(function () {
 
     Route::resource('vcards', VCardController::class)->except('store');
     Route::resource('categories', CategoryController::class);
+    Route::resource('transactions', TransactionController::class);
 });
 
 Route::fallback(function () {
