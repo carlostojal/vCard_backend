@@ -39,17 +39,6 @@ Route::get('/Unauthenticated', function () {
 })->name('Unauthenticated');
 
 
-Route::get('/statistics/DebitPerMonth', [StatisticsController::class, 'getStatisticsDebitPerMonth']);
-Route::get('/statistics/DebitPerYear', [StatisticsController::class, 'getStatisticsDebitPerYear']);
-
-Route::get('/statistics/CreditPerMonth', [StatisticsController::class, 'getStatisticsCreditPerMonth']);
-Route::get('/statistics/CreditPerYear', [StatisticsController::class, 'getStatisticsCreditPerYear']);
-
-Route::get('/statistics/MoneySpentPerCard', [StatisticsController::class, 'getMoneySpentPerCardType']);
-Route::get('/statistics/MoneyReceivedPerCard', [StatisticsController::class, 'getMoneyReceivedPerCardType']);
-Route::get('/statistics/CategoriesSpent', [StatisticsController::class, 'getMoneySpentByCategories']);
-Route::get('/statistics/CategoriesReceived', [StatisticsController::class, 'getMoneyReceivedByCategories']);
-
 //COLOCAR DENTRO DO MIDDLEWARE DE AUTH ADMIN
 Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
 Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
@@ -70,6 +59,7 @@ Route::post('/categories', [CategoryController::class, 'store']); //Creates a ne
 
 Route::middleware('auth:api')->group(function () {
     //ALL ADMINISTRATORS/USERS ROUTES ARE HERE
+    Route::post('/users/credit-vcard', [TransactionController::class, 'creditVcard']);
     Route::get('/testAdmin', function(){ return Auth::user(); });
     Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
 
@@ -80,6 +70,17 @@ Route::middleware('auth:api')->group(function () {
 
 Route::middleware('auth:vcard')->group(function () {
     //VCARD USERS ROUTES, TAES IS HERE
+    Route::get('/statistics/DebitPerMonth', [StatisticsController::class, 'getStatisticsDebitPerMonth']);
+    Route::get('/statistics/DebitPerYear', [StatisticsController::class, 'getStatisticsDebitPerYear']);
+
+    Route::get('/statistics/CreditPerMonth', [StatisticsController::class, 'getStatisticsCreditPerMonth']);
+    Route::get('/statistics/CreditPerYear', [StatisticsController::class, 'getStatisticsCreditPerYear']);
+
+    Route::get('/statistics/MoneySpentPerCard', [StatisticsController::class, 'getMoneySpentPerCardType']);
+    Route::get('/statistics/MoneyReceivedPerCard', [StatisticsController::class, 'getMoneyReceivedPerCardType']);
+    Route::get('/statistics/CategoriesSpent', [StatisticsController::class, 'getMoneySpentByCategories']);
+    Route::get('/statistics/CategoriesReceived', [StatisticsController::class, 'getMoneyReceivedByCategories']);
+
     Route::get('/piggy-bank', [PiggyBankController::class, 'getPiggyBank']); //Returns vcard piggy bank transactions
     Route::get('/piggy-bank/transactions', [PiggyBankController::class, 'getTransactions']); //Returns vcard piggy bank transactions
     Route::post('/piggy-bank/withdraw', [PiggyBankController::class, 'withdraw']);
@@ -107,7 +108,7 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/transactions/{id}', [TransactionController::class, 'show']); //Returns the transaction
     Route::put('/transactions/{id}', [TransactionController::class, 'update']); //Updates transaction
 
-    Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard 
+    Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard
 
     Route::resource('vcards', VCardController::class)->except('store');
 });
