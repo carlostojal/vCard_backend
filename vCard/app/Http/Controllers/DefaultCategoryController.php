@@ -20,8 +20,8 @@ class DefaultCategoryController extends Controller
         return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
     }
 
-    public function show(DefaultCategory $dc){
-        return $this->responseService->sendWithDataResponse(200, null, $dc);
+    public function show(DefaultCategory $defaultCategory){
+        return $this->responseService->sendWithDataResponse(200, null, $defaultCategory);
     }
 
 }

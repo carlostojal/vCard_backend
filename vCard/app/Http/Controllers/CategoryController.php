@@ -22,18 +22,20 @@ class CategoryController extends Controller
         $this->responseService = new ResponseService();
     }
 
-    public function index(Vcard $vcard){
+    public function index(?Vcard $vcard = null){
         if($vcard){
             $categories = $vcard->categories()->paginate(15);
             return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
         }
-        // $categories = DefaultCategory::paginate(15);
         $categories = Category::paginate(15);
         return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
     }
 
-    public function show(String $query, Request $request){
+    public function show(Category $category){
+        return $this->responseService->sendWithDataResponse(200, null, $category);
+    }
 
+    public function show_2(String $query, Request $request){
         $validator = Validator::make($request->all(), [
             'type' => 'required|in:D,C,all',
         ]);

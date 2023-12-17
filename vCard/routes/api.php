@@ -40,10 +40,13 @@ Route::middleware(['auth:api,vcard'])->group(function () {
     Route::resource('/vcards.transactions', TransactionController::class);
     Route::resource('/vcards/transactions', TransactionController::class);
 
+
     Route::resource('/vcards.categories', CategoryController::class);
     Route::resource('/vcards/categories', CategoryController::class);
 
     Route::resource('vcards', VCardController::class)->except('store');
+
+    Route::resource('categories', CategoryController::class);
 });
 
 // Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
@@ -94,10 +97,10 @@ Route::middleware('auth:vcard')->group(function () {
     // Route::get('/vcards/profile', [VCardController::class, 'profile']);
     // Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
     // // Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
-    // Route::post('/vcards/send', [VcardController::class, 'makeTransaction']);
+    Route::post('/vcards/send', [VcardController::class, 'makeTransaction']);
     //
     //
-    // Route::get('/vcards/photo/', [VcardController::class, 'getPhotoUrl']);
+    Route::get('/vcards/photo/', [VcardController::class, 'getPhotoUrl']);
     //
     // Route::get('/myTransactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']); //Returns all transactions of certain vcard | email | name
     // Route::get('/vcards/transactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']);
@@ -108,8 +111,8 @@ Route::middleware('auth:vcard')->group(function () {
     // Route::post('/vcards/mycategories', [CategoryController::class, 'storeMyCategoriesDAD']); //Creates a new category in vcard
     // Route::delete('/myCategories/{id}', [CategoryController::class, 'destroyMyCategoriesDAD']); //Deletes a category in vcard
     //
-    // Route::post('/vcards/verifyPassword', [VcardController::class, 'verifyPassword']); //Verifies password
-    // Route::post('/vcards/verifyPin', [VcardController::class, 'verifyPin']); //Verifies pin
+    Route::post('/vcards/verifyPassword', [VcardController::class, 'verifyPassword']); //Verifies password
+    Route::post('/vcards/verifyPin', [VcardController::class, 'verifyPin']); //Verifies pin
 
     // Route::delete('/ownVcard', [VcardController::class, 'deleteOwnVcard']); //Deletes own vcard
     // Route::get('/transactions/{id}', [TransactionController::class, 'show']); //Returns the transaction
