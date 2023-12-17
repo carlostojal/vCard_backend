@@ -52,6 +52,41 @@ class TransactionController extends Controller
         return $this->errorService->sendStandardError(404, "Transaction not found");
     }
 
+    public function update(Request $request, int $id){
+        $transaction = Transaction::find($id);
+
+        if($transaction){
+            $vcard = Auth::user();
+            if(!$vcard->transactions()->where('id', $id)->exists()){
+                return $this->errorService->sendStandardError(403, "You are not authorized to update this transaction");
+            }
+
+            $validator = Validator::make($request->all(), [
+                'category' => 'exists:categories,id',
+            ]);
+
+            //se a categoria n for do vcard do auth
+            if($request->category != $vcard->categories()->where('id', $request->category)->exists()){
+                return $this->errorService->sendStandardError(403, "This category does not belong to you");
+            }
+
+            if($validator->fails()){
+                return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+            }
+
+            $transaction->description = $request->description;
+            $transaction->category_id = $request->category;
+
+            if($transaction->save()){
+                return $this->responseService->sendStandardResponse(200, "Transaction updated successfully");
+            }
+            return $this->errorService->sendStandardError(500, "Transaction could not be updated");
+        }
+
+        return $this->errorService->sendStandardError(404, "Transaction not found");
+
+    }
+
     public function indexAllTransactions_search(string $query, Request $request){
 
         $validator = Validator::make($request->all(), [

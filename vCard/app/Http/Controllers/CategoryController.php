@@ -157,6 +157,14 @@ class CategoryController extends Controller
         return $vcard->categories;
     }
 
+    public function getMyCategoriesType(String $type){
+        $vcard = Auth::user();
+
+        $categories = $vcard->categories()->where('type', $type)->get();
+
+        return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories]);
+    }
+
     public function getMyCategoriesDAD(){
 
         $vcard = Auth::user();

@@ -85,7 +85,9 @@ Route::middleware('auth:vcard')->group(function () {
     Route::post('/piggy-bank/withdraw', [PiggyBankController::class, 'withdraw']);
     Route::post('/piggy-bank/deposit', [PiggyBankController::class, 'deposit']);
 
+    
     Route::get('/vcards/categories', [CategoryController::class, 'getMyCategories']); //Returns vcard's categories
+    Route::get('/vcards/{type}/mycategories', [CategoryController::class, 'getMyCategoriesType']); //Returns vcard's categories with type (Credit or Debit)
 
     Route::get('/vcards/profile', [VCardController::class, 'profile']);
     Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
@@ -103,7 +105,7 @@ Route::middleware('auth:vcard')->group(function () {
     Route::post('/vcards/verifyPin', [VcardController::class, 'verifyPin']); //Verifies pin
     Route::delete('/ownVcard', [VcardController::class, 'deleteOwnVcard']); //Deletes own vcard
     Route::get('/transactions/{id}', [TransactionController::class, 'show']); //Returns the transaction
-
+    Route::put('/transactions/{id}', [TransactionController::class, 'update']); //Updates transaction
 
     Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard 
 
