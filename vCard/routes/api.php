@@ -108,8 +108,11 @@ Route::middleware('auth:vcard')->group(function () {
 
     Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //Deletes vcard
 
+    // Route::patch('/vcards/{vcard}', [VCardController::class, 'update']);
     Route::resource('vcards', VCardController::class)->except('store');
 });
+
+Route::resource('vcards', VCardController::class)->except('store');
 
 Route::fallback(function () {
     return response()->json(['status' => 'error', 'message' => 'Route not found'], 404);

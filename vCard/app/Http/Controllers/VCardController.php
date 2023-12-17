@@ -12,10 +12,15 @@ use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Models\PiggyBank;
+use App\Models\User;
+use App\Policies\VcardPolicy;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
 use App\Services\TransactionService;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PhpParser\Node\Expr\Instanceof_;
 
 class VCardController extends Controller
 {
@@ -211,12 +216,6 @@ class VCardController extends Controller
         }
 
         if($vcards){
-       //      return response()->json([
-       //          'status' => 'success',
-       //          'message' => 'vcard retrieved successfully',
-       //          'data' => $vcards,
-       //          'last' => $vcards->lastPage(),
-       //      ], 200);
             return $this->responseService->sendWithDataResponse(200, "vcard retrieved successfully", ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
        }
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
@@ -339,7 +338,7 @@ class VCardController extends Controller
         if($transactionReturn != null){
             return $transactionReturn;
         }
-        
+
         return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
     }
 
@@ -430,8 +429,57 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "File not found");
     }
 
+    public function update(Request $req, $id){
+        if($req->all() == null){
+            return $this->errorService->sendStandardError(422, 'Request body was enpty');
+        }
+        // if(Auth::user()->cannot('update', 'vcard')
+        $this->authorize('update', $id);
+
+        $vcard = Vcard::find($id);
+        if(!$vcard){
+            return $this->errorService->sendStandardError(404, 'vCard not found');
+        }
+        if($vcard->blocked){
+            return $this->errorService->sendStandardError(403, 'vCard is blocked');
+        }
+        // if($req->max_debit){
+        //     if(!Auth::check() || !Auth::user() Instanceof User){
+        //         return $this->errorService->sendStandardError(401, 'You must be an admin user to change the debit limit');
+        //     }
+        // }
+        if($req->password){
+            if(!$req->current_password){
+                return $this->errorService->sendStandardError(422, 'To change password, current must be provided');
+            }
+            if(!Hash::check($req->current_password, $vcard->password)){
+                return $this->errorService->sendStandardError(422, 'Wrong Password');
+            }
+            if($req->password == $req->current_password){
+                return $this->errorService->sendStandardError(422, 'New password is the same as current password');
+            }
+        }
+
+        if($req->authorization_code){
+            if(!$req->current_authorization_code){
+                return $this->errorService->sendStandardError(422, 'To change Pin, current must be provided');
+            }
+            if($req->current_authorization_code != $vcard->authorization_code){
+                return $this->errorService->sendStandardError(422, 'Wrong Authorization Code');
+            }
+            if($req->authorization_code == $req->current_authorization_code){
+                return $this->errorService->sendStandardError(422, 'New code/pin is the same as current code/pin');
+            }
+        }
+
+        $vcard->update($req->all());
+        $vcard->save();
+
+        return $this->responseService->sendStandardResponse(200, 'vCard updated successfully');
+    }
+
     public function verifyPassword(Request $request){
-        
+
         $validator = Validator::make($request->all(), [
             'pass' => 'required|string',
         ]);
