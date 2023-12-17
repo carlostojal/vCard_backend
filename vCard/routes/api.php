@@ -63,6 +63,11 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/testAdmin', function(){ return Auth::user(); });
     Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
 
+    Route::get('/statistics/AllTransactionsDebitYear', [StatisticsController::class, 'getAllTransactionsDebitYear']);
+    Route::get('/statistics/AllTransactionsCredit', [StatisticsController::class, 'getAllTransactionsCredit']);
+    Route::get('/statistics/AllTransactionsCreditYear', [StatisticsController::class, 'getAllTransactionsCreditYear']);
+    Route::get('/statistics/ActiveVcards', [StatisticsController::class, 'getActiveVcards']);
+
     Route::get('/users/profile', [UserController::class, 'profile']);
     Route::resource('users', UserController::class)->except('store');
     // Route::post('/users/logout', [AuthController::class, 'logout']);
