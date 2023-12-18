@@ -219,21 +219,11 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
-    public function deleteVcard(string $phone_number)
+    public function destroy(Vcard $vcard)
     {
-        $validator = Validator::make(['phone_number' => $phone_number], [
-            'phone_number' => 'required|min:9',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-        $vcard = Vcard::where('phone_number', $phone_number)->first();
-
         if ($vcard) {
 
-            $transactions = Transaction::where('vcard', $phone_number)->orWhere('pair_vcard', $phone_number)->get();
+            $transactions = Transaction::where('vcard', $vcard->phone_number)->orWhere('pair_vcard', $vcard->phone_number)->get();
 
             if($vcard->balance == 0 && $transactions->count() > 0){
                 $vcard->delete();
@@ -430,9 +420,7 @@ class VCardController extends Controller
         if(!$vcard){
             return $this->errorService->sendStandardError(404, 'vCard not found');
         }
-        if($vcard->blocked){
-            return $this->errorService->sendStandardError(403, 'vCard is blocked');
-        }
+
         // if($req->max_debit){
         //     if(!Auth::check() || !Auth::user() Instanceof User){
         //         return $this->errorService->sendStandardError(401, 'You must be an admin user to change the debit limit');

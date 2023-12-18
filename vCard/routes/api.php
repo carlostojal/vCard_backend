@@ -98,7 +98,7 @@ Route::middleware('auth:vcard')->group(function () {
     // Route::delete('/ownVcard', [VcardController::class, 'deleteOwnVcard']);
     // Route::get('/transactions/{id}', [TransactionController::class, 'show']);
 
-    Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']);
+    Route::delete('/myVcard', [VCardController::class, 'deleteVcardMobile']); //TAES DO NOT AVALIATE FOR DAD
 });
 
 

@@ -24,8 +24,9 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::all();
-        return $this->responseService->sendWithDataResponse(200, 'Admins retrieved successfully', $users);
+        $users = User::query();
+        $users = $users->paginate(10);
+        return $this->responseService->sendWithDataResponse(200, 'Admins retrieved successfully', ['users' => $users, 'last' => $users->lastPage()]);
     }
 
     public function store(Request $request)
