@@ -14,6 +14,11 @@ class Transaction extends Model
          'new_balance', 'payment_type', 'pair_vcard', 'payment_reference', 'description'
     ];
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
+    
     public function pairTransaction()
     {
         return $this->belongsTo(Transaction::class, 'pair_transaction', 'id');
