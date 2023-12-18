@@ -42,6 +42,15 @@ class DefaultCategoryController extends Controller
         return $this->responseService->sendWithDataResponse(200, null, $defaultCategory);
     }
 
+    public function destroy(DefaultCategory $defaultCategory){
+        $defaultCategory->delete();
+        return $this->responseService->sendStandardResponse(204, 'Default Category Deleted');
+    }
+
+    public function store(Request $request){
+
+    }
+
 }
 
 

@@ -28,7 +28,7 @@ class CategoryController extends Controller
             $vcard = $user;
         }
         if($vcard){
-            $categories = $vcard->categories()->paginate(15);
+            $categories = $vcard->categories()->paginate(5);
             return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
         }
         $categories = Category::paginate(15);
