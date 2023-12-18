@@ -47,7 +47,7 @@ Route::get('/Unauthenticated', function () {
 
 
 Route::middleware('auth:api')->group(function () {
-    // Route::post('/users/credit-vcard', [TransactionController::class, 'creditVcard']);
+    Route::post('/users/credit-vcard', [TransactionController::class, 'creditVcard']);
     // Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
     Route::get('/vcards/{vcard}/photo/', [VcardController::class, 'getPhotoUrl']);
 
@@ -66,23 +66,23 @@ Route::middleware('auth:api')->group(function () {
 });
 
 Route::middleware('auth:vcard')->group(function () {
-    // Route::get('/statistics/DebitPerMonth', [StatisticsController::class, 'getStatisticsDebitPerMonth']);
-    // Route::get('/statistics/DebitPerYear', [StatisticsController::class, 'getStatisticsDebitPerYear']);
-    //
-    // Route::get('/statistics/CreditPerMonth', [StatisticsController::class, 'getStatisticsCreditPerMonth']);
-    // Route::get('/statistics/CreditPerYear', [StatisticsController::class, 'getStatisticsCreditPerYear']);
-    //
-    // Route::get('/statistics/MoneySpentPerCard', [StatisticsController::class, 'getMoneySpentPerCardType']);
-    // Route::get('/statistics/MoneyReceivedPerCard', [StatisticsController::class, 'getMoneyReceivedPerCardType']);
-    //
-    // Route::get('/statistics/CategoriesSpent', [StatisticsController::class, 'getMoneySpentByCategories']);
-    // Route::get('/statistics/CategoriesReceived', [StatisticsController::class, 'getMoneyReceivedByCategories']);
-    //
-    // Route::get('/piggy-bank', [PiggyBankController::class, 'getPiggyBank']);
-    // Route::get('/piggy-bank/transactions', [PiggyBankController::class, 'getTransactions']);
-    // Route::post('/piggy-bank/withdraw', [PiggyBankController::class, 'withdraw']);
-    // Route::post('/piggy-bank/deposit', [PiggyBankController::class, 'deposit']);
-    //
+    Route::get('/statistics/DebitPerMonth', [StatisticsController::class, 'getStatisticsDebitPerMonth']);
+    Route::get('/statistics/DebitPerYear', [StatisticsController::class, 'getStatisticsDebitPerYear']);
+
+    Route::get('/statistics/CreditPerMonth', [StatisticsController::class, 'getStatisticsCreditPerMonth']);
+    Route::get('/statistics/CreditPerYear', [StatisticsController::class, 'getStatisticsCreditPerYear']);
+
+    Route::get('/statistics/MoneySpentPerCard', [StatisticsController::class, 'getMoneySpentPerCardType']);
+    Route::get('/statistics/MoneyReceivedPerCard', [StatisticsController::class, 'getMoneyReceivedPerCardType']);
+
+    Route::get('/statistics/CategoriesSpent', [StatisticsController::class, 'getMoneySpentByCategories']);
+    Route::get('/statistics/CategoriesReceived', [StatisticsController::class, 'getMoneyReceivedByCategories']);
+
+    Route::get('/piggy-bank', [PiggyBankController::class, 'getPiggyBank']);
+    Route::get('/piggy-bank/transactions', [PiggyBankController::class, 'getTransactions']);
+    Route::post('/piggy-bank/withdraw', [PiggyBankController::class, 'withdraw']);
+    Route::post('/piggy-bank/deposit', [PiggyBankController::class, 'deposit']);
+
     // Route::get('/vcards/categories', [CategoryController::class, 'getMyCategories']);
     // Route::get('/vcards/profile', [VCardController::class, 'profile']);
     // Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
