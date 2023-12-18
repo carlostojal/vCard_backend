@@ -260,6 +260,13 @@ class VCardController extends Controller
             return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
         }
 
+        if($request->category_id){
+            $category = Category::where('id', $request->category_id)->first();
+            if(!$category){
+                return $this->errorService->sendStandardError(404, "Category not found");
+            }
+        }
+
         if ($request->amount <= 0.00) {
             return $this->errorService->sendStandardError(422, "Amount needs to be greater than 0.00");
         }
