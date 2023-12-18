@@ -466,9 +466,9 @@ class VCardController extends Controller
             $req->confirmation_code = Hash::make($req->confirmation_code);
             $vcard->confirmation_code = $req->confirmation_code;
         }
-
-        $request = $req->except('confirmation_code');
-        $request = $req->except('password');
+//dd($vcard->confirmation_code, $req->confirmation_code);
+        //$request = $req->except('confirmation_code');
+        $request = $req->except('password', 'confirmation_code');
         $vcard->update($request);
         $vcard->save();
 
