@@ -84,9 +84,9 @@ Route::middleware('auth:vcard')->group(function () {
     Route::post('/piggy-bank/deposit', [PiggyBankController::class, 'deposit']);
 
     // Route::get('/vcards/categories', [CategoryController::class, 'getMyCategories']);
-    // Route::get('/vcards/profile', [VCardController::class, 'profile']);
+Route::get('/vcards/profile', [VCardController::class, 'profile']);  //new
     // Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
-    // // Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
+Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);  //new
     Route::post('/vcards/send', [VcardController::class, 'makeTransaction']);
     Route::get('/vcards/photo/', [VcardController::class, 'getPhotoUrl']);
     // Route::get('/myTransactions/search/{query}', [TransactionController::class, 'indexMyTransactions_search']); //Returns all transactions of certain vcard | email | name
