@@ -105,7 +105,7 @@ Route::middleware('auth:vcard')->group(function () {
 Route::middleware(['auth:api,vcard'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout']);
 
-    // Route::get('/extract/pdf', [PDFController::class, 'index']);
+    Route::get('/extract/pdf', [PDFController::class, 'index']);
 
     // Route::get('/vcards/mycategories', [CategoryController::class, 'getMyCategoriesDAD']); //Returns vcard's categories
     // Route::post('/vcards/mycategories', [CategoryController::class, 'storeMyCategoriesDAD']); //Creates a new category in vcard
