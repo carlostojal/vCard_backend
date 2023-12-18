@@ -73,7 +73,6 @@ class VCardController extends Controller
 
     public function store(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$/',
             'password' => 'required',
@@ -219,10 +218,12 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
-    public function destroy(Vcard $vcard)
+    public function destroy(?Vcard $vcard = null)
     {
+        if($vcard = null){
+            $vcard = Auth::user();
+        }
         if ($vcard) {
-
             $transactions = Transaction::where('vcard', $vcard->phone_number)->orWhere('pair_vcard', $vcard->phone_number)->get();
 
             if($vcard->balance == 0 && $transactions->count() > 0){

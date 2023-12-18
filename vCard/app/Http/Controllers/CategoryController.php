@@ -76,12 +76,25 @@ class CategoryController extends Controller
 
     }
 
-    public function store(Request $request){
+    public function store(Request $request, ?Vcard $vcard = null){
+        if($vcard == null){
+            $vcard = Auth::user();
+        }
+        if($vcard == null){
+            return $this->errorService->sendStandardError(401, 'You must be a vcard user to add a category to your account');
+        }
+        if(!($vcard instanceof Vcard)){
+            return $this->errorService->sendStandardError(401, 'You must be a vcard user to add a category to your account');
+        }
+
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|unique:default_categories',
+            'name' => 'required|string',
             'type' => 'required|in:D,C',
         ]);
 
+        if(Category::where('vcard', $vcard->phone_number)->where('name', $request->name)->first()){
+            return $this->errorService->sendStandardError(422, 'Category already exists');
+        }
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
@@ -89,8 +102,8 @@ class CategoryController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
-        $category = DefaultCategory::create([
+        $category = Category::create([
+            'vcard' => $vcard->phone_number,
             'name' => $request->name,
             'type' => $request->type,
         ]);

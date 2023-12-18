@@ -84,8 +84,6 @@ class TransactionController extends Controller
         return $this->responseService->sendWithDataResponse(200, "Transaction retrieved successfully", ['transaction' => $transaction]);
     }
 
-    public function update(
-
     public function creditVcard(Request $request){
         $validator = Validator::make($request->all(), [
             'vcard' => 'min:9',
