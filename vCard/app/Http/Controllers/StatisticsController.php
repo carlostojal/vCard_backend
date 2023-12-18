@@ -136,7 +136,14 @@ class StatisticsController extends Controller
             }
             $sum+=$transaction->value;
         }
-        return $this->responseService->sendWithDataResponse(200, null,  ["max" =>$max,"perc"=>number_format($max/$sum,4)*100,"maxCategory"=>$maxCategory,$data]);
+        
+        if($sum<0){
+            return $this->responseService->sendWithDataResponse(200, null,  ["max" =>$max,"perc"=>number_format($max/$sum,4)*100,"maxCategory"=>$maxCategory,$data]);
+
+        }else{
+            return $this->responseService->sendWithDataResponse(200, null,  ["max" =>$max,"perc"=>0,"maxCategory"=>"none",$data]);
+        }
+
     }
     public function getMoneyReceivedByCategories(){
         $vcard = Auth::user();
@@ -164,7 +171,14 @@ class StatisticsController extends Controller
             }
             $sum+=$transaction->value;
         }
-        return $this->responseService->sendWithDataResponse(200, null,  ["max" =>$max,"perc"=>number_format($max/$sum,4)*100,"maxCategory"=>$maxCategory,$data]);
+        
+        if($sum<0){
+            return $this->responseService->sendWithDataResponse(200, null,  ["max" =>$max,"perc"=>number_format($max/$sum,4)*100,"maxCategory"=>$maxCategory,$data]);
+
+        }else{
+            return $this->responseService->sendWithDataResponse(200, null,  ["max" =>$max,"perc"=>0,"maxCategory"=>"none",$data]);
+        }
+
     }
     public function getAllTransactionsDebit()
     {

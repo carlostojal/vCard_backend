@@ -38,7 +38,6 @@ Route::get('/Unauthenticated', function () {
     return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
 })->name('Unauthenticated');
 
-
 //COLOCAR DENTRO DO MIDDLEWARE DE AUTH ADMIN
 Route::get('/admins', [UserController::class, 'getAdmins']); //Returns all admins
 Route::get('/vcards/search/{phone_number}', [VCardController::class, 'show']);
@@ -67,6 +66,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/statistics/AllTransactionsCredit', [StatisticsController::class, 'getAllTransactionsCredit']);
     Route::get('/statistics/AllTransactionsCreditYear', [StatisticsController::class, 'getAllTransactionsCreditYear']);
     Route::get('/statistics/ActiveVcards', [StatisticsController::class, 'getActiveVcards']);
+    Route::get('/statistics/AllTransactionsDebit', [StatisticsController::class, 'getAllTransactionsDebit']);
 
     Route::get('/users/profile', [UserController::class, 'profile']);
     Route::resource('users', UserController::class)->except('store');
@@ -90,7 +90,6 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/piggy-bank/transactions', [PiggyBankController::class, 'getTransactions']); //Returns vcard piggy bank transactions
     Route::post('/piggy-bank/withdraw', [PiggyBankController::class, 'withdraw']);
     Route::post('/piggy-bank/deposit', [PiggyBankController::class, 'deposit']);
-
     
     Route::get('/vcards/categories', [CategoryController::class, 'getMyCategories']); //Returns vcard's categories
     Route::get('/vcards/{type}/mycategories', [CategoryController::class, 'getMyCategoriesType']); //Returns vcard's categories with type (Credit or Debit)
@@ -99,7 +98,8 @@ Route::middleware('auth:vcard')->group(function () {
     Route::get('/vcards/balance', [VCardController::class, 'getBalance']);
     Route::get('/vcards/transactions', [TransactionController::class, 'getMyTransactions']);
     Route::post('/vcards/send', [VcardController::class, 'makeTransaction']);
-
+    
+    
 
     Route::get('/vcards/photo/', [VcardController::class, 'getPhotoUrl']);
     // Route::post('/vcards/logout', [AuthController::class, 'logout']);
