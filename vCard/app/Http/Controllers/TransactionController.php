@@ -55,29 +55,32 @@ class TransactionController extends Controller
             if($phone != null){
                 $transactions->whereIn('transactions.pair_vcard', $phone);
             }
+        }
+        return $transactions;
+    }
     public function update(Request $request, int $id){
         $transaction = Transaction::find($id);
-        if($transaction){
 
+        if($transaction){
             $vcard = Auth::user();
             if(!$vcard->transactions()->where('id', $id)->exists()){
-            }
                 return $this->errorService->sendStandardError(403, "You are not authorized to update this transaction");
+            }
 
-                'category' => 'exists:categories,id',
             $validator = Validator::make($request->all(), [
+                'category' => 'exists:categories,id',
             ]);
 
             //se a categoria n for do vcard do auth
-                return $this->errorService->sendStandardError(403, "This category does not belong to you");
             if($request->category != $vcard->categories()->where('id', $request->category)->exists()){
+                return $this->errorService->sendStandardError(403, "This category does not belong to you");
             }
 
-                return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
             if($validator->fails()){
+                return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+            }
 
             $transaction->description = $request->description;
-            }
             $transaction->category_id = $request->category;
 
             if($transaction->save()){
@@ -89,10 +92,6 @@ class TransactionController extends Controller
         return $this->errorService->sendStandardError(404, "Transaction not found");
 
     }
-        }
-        return $transactions;
-    }
-
     public function index(Request $request, ?Vcard $vcard = null){
         $user = Auth::user();
         if($user instanceof Vcard && !$vcard){
@@ -118,7 +117,6 @@ class TransactionController extends Controller
         return $this->responseService->sendWithDataResponse(200, "Transaction retrieved successfully", ['transaction' => $transaction]);
     }
 
-    public function update(
 
     public function creditVcard(Request $request){
         $validator = Validator::make($request->all(), [
