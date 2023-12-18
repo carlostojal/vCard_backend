@@ -53,7 +53,7 @@ Route::middleware('auth:api')->group(function () {
 
     // Route::post('/users', [UserController::class, 'store']);
 
-    Route::get('/users/{user}/profile', [UserController::class, 'profile']);
+    Route::get('/users/profile', [UserController::class, 'profile']);
 
     Route::resource('default-categories', DefaultCategoryController::class);
     Route::resource('users', UserController::class);
@@ -68,6 +68,7 @@ Route::middleware('auth:vcard')->group(function () {
     //
     // Route::get('/statistics/MoneySpentPerCard', [StatisticsController::class, 'getMoneySpentPerCardType']);
     // Route::get('/statistics/MoneyReceivedPerCard', [StatisticsController::class, 'getMoneyReceivedPerCardType']);
+    //
     // Route::get('/statistics/CategoriesSpent', [StatisticsController::class, 'getMoneySpentByCategories']);
     // Route::get('/statistics/CategoriesReceived', [StatisticsController::class, 'getMoneyReceivedByCategories']);
     //

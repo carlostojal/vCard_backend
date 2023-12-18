@@ -30,7 +30,17 @@ class TransactionController extends Controller
             $transactions->where('type', $request->type);
         }
         if($request->has('vcard')){
-            $transactions->where('vcard', $request->vcard);
+            $phone = null;
+            if (filter_var($request->vcard, FILTER_VALIDATE_EMAIL)) {
+                $phone = Vcard::where('email', $request->vcard)->select('phone_number');
+            }elseif(is_numeric($request->vcard)){
+                $phone = Vcard::where('phone_number', $request->vcard)->select('phone_number');
+            }elseif(is_string($request->vcard)){
+                $phone = Vcard::where('name','LIKE', '%' . $request->vcard. '%')->select('phone_number');
+            }
+            if($phone != null){
+                $transactions->whereIn('vcard', $phone);
+            }
         }
         if($request->has('pair_vcard')){
             $phone = null;
@@ -56,7 +66,7 @@ class TransactionController extends Controller
         if($vcard){
             $transactions = $vcard->transactions();
         }else{
-            $transactions = Transaction::all();
+            $transactions = Transaction::query();
         }
 
         if($request->all() != null){

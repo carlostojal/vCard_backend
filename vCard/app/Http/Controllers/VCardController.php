@@ -12,15 +12,10 @@ use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Vcard;
 use App\Models\PiggyBank;
-use App\Models\User;
-use App\Policies\VcardPolicy;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
 use App\Services\TransactionService;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use PhpParser\Node\Expr\Instanceof_;
 
 class VCardController extends Controller
 {
@@ -36,13 +31,33 @@ class VCardController extends Controller
 
     }
 
-    public function index(Vcard $vcard)
+    private function applyVcardFilters($vcards, Request $request){
+        if($request->has('search')){
+            if(is_numeric($request->search)){
+                $vcards->where('phone_number', $request->search);
+            }elseif (filter_var($request->search, FILTER_VALIDATE_EMAIL)) {
+                $vcards->where('email', 'LIKE', '%'. $request->search.'%');
+            }elseif(is_string($request->search)){
+                $vcards->where('name', 'LIKE', '%'. $request->search .'%');
+            }
+        }
+        if($request->has('blocked') && $request->blocked != null && $request->blocked != 'all'){
+            $vcards->where('blocked', $request->blocked);
+        }
+        return $vcards;
+    }
+
+    public function index(Request $request)
     {
         $user = Auth::user();
         if($user != null && $user instanceof Vcard){
             return $this->show($user);
         }
-        $vcards = Vcard::paginate(10);
+        $vcards = Vcard::query();
+        if($request->all() != null){
+            $vcards = $this->applyVcardFilters($vcards, $request);
+        }
+        $vcards = $vcards->paginate(10);
         return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
     }
 

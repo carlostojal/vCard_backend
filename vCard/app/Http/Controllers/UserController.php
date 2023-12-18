@@ -24,7 +24,8 @@ class UserController extends Controller
 
     public function index()
     {
-        return User::all();
+        $users = User::all();
+        return $this->responseService->sendWithDataResponse(200, 'Admins retrieved successfully', $users);
     }
 
     public function store(Request $request)
@@ -47,13 +48,6 @@ class UserController extends Controller
         $token =  $user->createToken('API Token')->accessToken;
 
         return $this->responseService->sendWithDataResponse(201, 'User Registered Successfully', ['token' => $token]);
-    }
-
-    public function getAdmins(){
-
-        $admins = User::where('name', 'like', 'Administrator%')->get();
-
-        return $this->responseService->sendWithDataResponse(200, 'Admins retrieved successfully', $admins);
     }
 
     /**
@@ -93,7 +87,7 @@ class UserController extends Controller
 
     }
 
-    public function profile(User $user){
-        return $this->responseService->sendWithDataResponse(200, null, $user);
+    public function profile(){
+        return $this->show(Auth::user());
     }
 }
