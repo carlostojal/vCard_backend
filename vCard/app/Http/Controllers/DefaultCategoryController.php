@@ -5,6 +5,7 @@ use App\Models\DefaultCategory;
 use App\Services\ErrorService;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class DefaultCategoryController extends Controller
 {
@@ -48,7 +49,28 @@ class DefaultCategoryController extends Controller
     }
 
     public function store(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|unique:default_categories',
+            'type' => 'required|in:D,C',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid category',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $category = DefaultCategory::create([
+            'name' => $request->name,
+            'type' => $request->type,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $category,
+        ], 201);
     }
 
 }

@@ -33,24 +33,24 @@ class TransactionController extends Controller
         if($request->has('vcard')){
             $phone = null;
             if (filter_var($request->vcard, FILTER_VALIDATE_EMAIL)) {
-                $phone = Vcard::where('transactions.email', $request->vcard)->select('phone_number');
+                $phone = Vcard::where('email', $request->vcard)->select('phone_number');
             }elseif(is_numeric($request->vcard)){
-                $phone = Vcard::where('transactions.phone_number', $request->vcard)->select('phone_number');
+                $phone = Vcard::where('phone_number', $request->vcard)->select('phone_number');
             }elseif(is_string($request->vcard)){
-                $phone = Vcard::where('transactions.name','LIKE', '%' . $request->vcard. '%')->select('phone_number');
+                $phone = Vcard::where('name','LIKE', '%' . $request->vcard. '%')->select('phone_number');
             }
             if($phone != null){
-                $transactions->whereIn('vcard', $phone);
+                $transactions->whereIn('transactions.vcard', $phone);
             }
         }
         if($request->has('pair_vcard')){
             $phone = null;
             if (filter_var($request->pair_vcard, FILTER_VALIDATE_EMAIL)) {
-                $phone = Vcard::where('transactions.email', $request->pair_vcard)->select('phone_number');
+                $phone = Vcard::where('email', $request->pair_vcard)->select('phone_number');
             }elseif(is_numeric($request->pair_vcard)){
-                $phone = Vcard::where('transactions.phone_number', $request->pair_vcard)->select('phone_number');
+                $phone = Vcard::where('phone_number', $request->pair_vcard)->select('phone_number');
             }elseif(is_string($request->pair_vcard)){
-                $phone = Vcard::where('transactions.name','LIKE', '%' . $request->pair_vcard . '%')->select('phone_number');
+                $phone = Vcard::where('name','LIKE', '%' . $request->pair_vcard . '%')->select('phone_number');
             }
             if($phone != null){
                 $transactions->whereIn('transactions.pair_vcard', $phone);
@@ -73,7 +73,7 @@ class TransactionController extends Controller
         if($request->all() != null){
             $transactions = $this->applyTransactionFilters($transactions, $request);
         }
-        
+
         $transactions->orderBy('datetime', 'desc');
         $transactions->leftJoin('categories','transactions.category_id','=','categories.id')->select('transactions.*','categories.name');
         $transactions = $transactions->paginate(10);
