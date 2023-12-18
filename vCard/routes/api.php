@@ -51,6 +51,12 @@ Route::middleware('auth:api')->group(function () {
     // Route::get('/categories/{vcard}', [CategoryController::class, 'getAllFromVcard']); //Returns all categories of certain vcard
     Route::get('/vcards/{vcard}/photo/', [VcardController::class, 'getPhotoUrl']);
 
+    Route::get('/statistics/AllTransactionsDebitYear', [StatisticsController::class, 'getAllTransactionsDebitYear']);
+    Route::get('/statistics/AllTransactionsCredit', [StatisticsController::class, 'getAllTransactionsCredit']);
+    Route::get('/statistics/AllTransactionsCreditYear', [StatisticsController::class, 'getAllTransactionsCreditYear']);
+    Route::get('/statistics/ActiveVcards', [StatisticsController::class, 'getActiveVcards']);
+    Route::get('/statistics/AllTransactionsDebit', [StatisticsController::class, 'getAllTransactionsDebit']);
+
     // Route::post('/users', [UserController::class, 'store']);
 
     Route::get('/users/profile', [UserController::class, 'profile']);
