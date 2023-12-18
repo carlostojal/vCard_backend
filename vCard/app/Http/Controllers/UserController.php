@@ -24,7 +24,9 @@ class UserController extends Controller
 
     public function index()
     {
-        return User::all();
+        $users = User::query();
+        $users = $users->paginate(10);
+        return $this->responseService->sendWithDataResponse(200, 'Admins retrieved successfully', ['users' => $users, 'last' => $users->lastPage()]);
     }
 
     public function store(Request $request)
@@ -49,19 +51,12 @@ class UserController extends Controller
         return $this->responseService->sendWithDataResponse(201, 'User Registered Successfully', ['token' => $token]);
     }
 
-    public function getAdmins(){
-
-        $admins = User::where('name', 'like', 'Administrator%')->get();
-
-        return $this->responseService->sendWithDataResponse(200, 'Admins retrieved successfully', $admins);
-    }
-
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        //
+        return $this->responseService->sendWithDataResponse(200, null, $user);
     }
 
     /**
@@ -94,7 +89,6 @@ class UserController extends Controller
     }
 
     public function profile(){
-        $user = Auth::user();
-        return $this->responseService->sendWithDataResponse(200, null, $user);
+        return $this->show(Auth::user());
     }
 }

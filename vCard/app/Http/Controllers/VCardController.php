@@ -30,40 +30,39 @@ class VCardController extends Controller
         $this->transactionService = new TransactionService();
 
     }
-    //
-    // public function index()
-    // {
-    //
-    //     $vcards = Vcard::paginate(10);
-    //
-    //     return response()->json([
-    //         $vcards,
-    //         'last' => $vcards->lastPage(),
-    //     ], 200);
-    // }
 
-
-    public function indexBlocked(Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'blocked' => 'required|in:all,0,1',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+    private function applyVcardFilters($vcards, Request $request){
+        if($request->has('search')){
+            if(is_numeric($request->search)){
+                $vcards->where('phone_number', $request->search);
+            }elseif (filter_var($request->search, FILTER_VALIDATE_EMAIL)) {
+                $vcards->where('email', 'LIKE', '%'. $request->search.'%');
+            }elseif(is_string($request->search)){
+                $vcards->where('name', 'LIKE', '%'. $request->search .'%');
+            }
         }
-
-        if($request->blocked != 'all'){
-            $vcards = Vcard::where('blocked', $request->blocked)->paginate(10);
-        }else{
-            $vcards = Vcard::paginate(10);
+        if($request->has('blocked') && $request->blocked != null && $request->blocked != 'all'){
+            $vcards->where('blocked', $request->blocked);
         }
+        return $vcards;
+    }
+
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+        if($user != null && $user instanceof Vcard){
+            return $this->show($user);
+        }
+        $vcards = Vcard::query();
+        if($request->all() != null){
+            $vcards = $this->applyVcardFilters($vcards, $request);
+        }
+        $vcards = $vcards->paginate(10);
         return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
-
     }
 
 
-    private function trimPortugueseCountryCode($phoneNumber)
+   private function trimPortugueseCountryCode($phoneNumber)
     {
         if (strpos($phoneNumber, '+351') === 0) {
             $phoneNumber = substr($phoneNumber, 4);
@@ -180,7 +179,11 @@ class VCardController extends Controller
     }
 
 
-    public function show(string $query, Request $request)
+    public function show(Vcard $vcard){
+       return $this->responseService->sendWithDataResponse(200, null, $vcard);
+    }
+
+    public function show_2(string $query, Request $request)
     {
 
         $validator = Validator::make($request->all(), [
@@ -211,32 +214,16 @@ class VCardController extends Controller
         }
 
         if($vcards){
-       //      return response()->json([
-       //          'status' => 'success',
-       //          'message' => 'vcard retrieved successfully',
-       //          'data' => $vcards,
-       //          'last' => $vcards->lastPage(),
-       //      ], 200);
             return $this->responseService->sendWithDataResponse(200, "vcard retrieved successfully", ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
        }
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
-    public function deleteVcard(string $phone_number)
+    public function destroy(Vcard $vcard)
     {
-        $validator = Validator::make(['phone_number' => $phone_number], [
-            'phone_number' => 'required|min:9',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-        $vcard = Vcard::where('phone_number', $phone_number)->first();
-
         if ($vcard) {
 
-            $transactions = Transaction::where('vcard', $phone_number)->orWhere('pair_vcard', $phone_number)->get();
+            $transactions = Transaction::where('vcard', $vcard->phone_number)->orWhere('pair_vcard', $vcard->phone_number)->get();
 
             if($vcard->balance == 0 && $transactions->count() > 0){
                 $vcard->delete();
@@ -248,20 +235,6 @@ class VCardController extends Controller
         }
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
-
-
-    public function profile()
-    {
-        $vcard = Auth::user();
-        return $this->responseService->sendWithDataResponse(200, null, $vcard);
-    }
-
-
-    public function getBalance(){
-        $vcard = Auth::user();
-        return $this->responseService->sendWithDataResponse(200, null, $vcard->balance);
-    }
-
 
     public function makeTransaction(Request $request) //Transfer money to another vcard
     {
@@ -275,6 +248,13 @@ class VCardController extends Controller
 
         if ($validator->fails()) {
             return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        }
+
+        if($request->category_id){
+            $category = Category::where('id', $request->category_id)->first();
+            if(!$category){
+                return $this->errorService->sendStandardError(404, "Category not found");
+            }
         }
 
         if ($request->amount <= 0.00) {
@@ -339,7 +319,7 @@ class VCardController extends Controller
         if($transactionReturn != null){
             return $transactionReturn;
         }
-        
+
         return $this->responseService->sendStandardResponse(200, "Transaction Successfully");
     }
 
@@ -419,8 +399,15 @@ class VCardController extends Controller
 
     }
 
-    public function getPhotoUrl(){
-        $vcard = Auth::user();
+    public function getPhotoUrl(?Vcard $vcard = null){
+        if($vcard == null){
+            $user = Auth::user();
+            if($user instanceof Vcard){
+                $vcard = $user;
+            }else {
+                return $this->errorService->sendStandardError(401, 'Your not a vcard user');
+            }
+        }
         if($vcard->photo_url != null){
             if(Storage::exists("public/fotos/".$vcard->photo_url)){
                 $url = Storage::url("fotos/".$vcard->photo_url);
@@ -430,8 +417,54 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "File not found");
     }
 
+    public function update(Request $req, Vcard $vcard){
+        if($req->all() == null){
+            return $this->errorService->sendStandardError(422, 'Request body was empty');
+        }
+        $this->authorize('update', $vcard);
+
+        // $vcard = Vcard::find($id);
+        if(!$vcard){
+            return $this->errorService->sendStandardError(404, 'vCard not found');
+        }
+
+        // if($req->max_debit){
+        //     if(!Auth::check() || !Auth::user() Instanceof User){
+        //         return $this->errorService->sendStandardError(401, 'You must be an admin user to change the debit limit');
+        //     }
+        // }
+        if($req->password){
+            if(!$req->current_password){
+                return $this->errorService->sendStandardError(422, 'To change password, current must be provided');
+            }
+            if(!Hash::check($req->current_password, $vcard->password)){
+                return $this->errorService->sendStandardError(422, 'Wrong Password');
+            }
+            if($req->password == $req->current_password){
+                return $this->errorService->sendStandardError(422, 'New password is the same as current password');
+            }
+        }
+
+        if($req->authorization_code){
+            if(!$req->current_authorization_code){
+                return $this->errorService->sendStandardError(422, 'To change Pin, current must be provided');
+            }
+            if($req->current_authorization_code != $vcard->authorization_code){
+                return $this->errorService->sendStandardError(422, 'Wrong Authorization Code');
+            }
+            if($req->authorization_code == $req->current_authorization_code){
+                return $this->errorService->sendStandardError(422, 'New code/pin is the same as current code/pin');
+            }
+        }
+
+        $vcard->update($req->all());
+        $vcard->save();
+
+        return $this->responseService->sendStandardResponse(200, 'vCard updated successfully');
+    }
+
     public function verifyPassword(Request $request){
-        
+
         $validator = Validator::make($request->all(), [
             'pass' => 'required|string',
         ]);

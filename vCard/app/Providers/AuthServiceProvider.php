@@ -10,6 +10,8 @@ use App\Models\Passport\Client;
 use App\Models\Passport\PersonalAccessClient;
 use App\Models\Passport\RefreshToken;
 use App\Models\Passport\Token;
+use App\Models\Vcard;
+use App\Policies\VcardPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -19,7 +21,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
+        // Vcard::class => VcardPolicy::class,
     ];
 
     /**
@@ -27,7 +29,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // $this->registerPolicies();
+        $this->registerPolicies();
         // Passport::routes();
         //
         // Passport::loadKeysFrom('./secrets/oauth');

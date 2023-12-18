@@ -80,7 +80,7 @@ class TransactionService
     }
 
     private function createTransaction(Vcard $vcard, String $type, Float $value, Float $newBalance,
-        String $paymentType, ?String $pairVcard, String $reference, ?String $description = null)
+        String $paymentType, ?String $pairVcard, String $reference, ?String $description = null, ?String $category_id)
     {
         $dt = now();
 
@@ -97,18 +97,21 @@ class TransactionService
             'payment_reference' => $reference,
         ]);
 
-        if ($description) {
+        if($description) {
             $transaction->description = $description;
+        }
+        if($category_id){
+            $transaction->category_id = $category_id;
         }
         return $transaction;
     }
 
-    private function makeDebitTransaction(Vcard $vcard, Float $amount, String $paymentType, String $reference, ?String $description): bool{
+    private function makeDebitTransaction(Vcard $vcard, Float $amount, String $paymentType, String $reference, ?String $description, ?String $category_id): bool{
         try {
             DB::beginTransaction();
 
             $newBalance = ($vcard->balance - $amount);
-            $t = $this->createTransaction($vcard, 'D', $amount, $newBalance, $paymentType, null, $reference, $description);
+            $t = $this->createTransaction($vcard, 'D', $amount, $newBalance, $paymentType, null, $reference, $description, $category_id);
             $vcard->balance = $newBalance;
             $vcard->save();
             $t->save();
@@ -121,12 +124,12 @@ class TransactionService
         }
     }
 
-    private function makeCreditTransaction(Vcard $vcard, Float $amount, String $paymentType, String $reference, ?String $description): bool{
+    private function makeCreditTransaction(Vcard $vcard, Float $amount, String $paymentType, String $reference, ?String $description, ?String $category_id): bool{
         try {
             DB::beginTransaction();
 
             $newBalance = ($vcard->balance + $amount);
-            $t = $this->createTransaction($vcard, 'C', $amount, $newBalance, $paymentType, null, $reference, $description);
+            $t = $this->createTransaction($vcard, 'C', $amount, $newBalance, $paymentType, null, $reference, $description, $category_id);
             $vcard->balance = $newBalance;
             $vcard->save();
             $t->save();
@@ -167,8 +170,8 @@ class TransactionService
 
             $destination_new_balance = ($vcard_destination->balance + $req->amount);
 
-            $t1 = $this->createTransaction($vcard_origin, 'D', $req->amount, $origin_new_balance, 'VCARD', $vcard_destination->phone_number, $vcard_destination->phone_number, $req->description);
-            $t2 = $this->createTransaction($vcard_destination, 'C', $req->amount, $destination_new_balance, 'VCARD', $vcard_origin->phone_number, $vcard_origin->phone_number, $req->description);
+            $t1 = $this->createTransaction($vcard_origin, 'D', $req->amount, $origin_new_balance, 'VCARD', $vcard_destination->phone_number, $vcard_destination->phone_number, $req->description, $req->category_id);
+            $t2 = $this->createTransaction($vcard_destination, 'C', $req->amount, $destination_new_balance, 'VCARD', $vcard_origin->phone_number, $vcard_origin->phone_number, $req->description, $req->category_id);
 
             $t1->pair_transaction = $t2->id;
             $t2->pair_transaction = $t1->id;
@@ -237,7 +240,7 @@ class TransactionService
             return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 
-        if ($this->makeDebitTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
+        if ($this->makeDebitTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description, $req->categoy_id) == false){
             return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 
@@ -250,7 +253,7 @@ class TransactionService
             return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 
-        if ($this->makeCreditTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description) == false){
+        if ($this->makeCreditTransaction($vcard, $req->amount, $paymentType, $req->payment_reference, $req->description, $req->category_id) == false){
             return $this->errorService->sendStandardError(500, "Transaction couldn't be performed, entity error. ".$this->errorMessage);
         }
 

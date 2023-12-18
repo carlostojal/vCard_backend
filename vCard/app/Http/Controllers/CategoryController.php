@@ -22,99 +22,29 @@ class CategoryController extends Controller
         $this->responseService = new ResponseService();
     }
 
-    public function index(){
-        $categories = DefaultCategory::paginate(15);
-        return response()->json([
-            'status' => 'success',
-            'data' => $categories,
-            'lastPage' => $categories->lastPage(),
-        ]);
-        // return $categories;
+    public function index(?Vcard $vcard = null, Request $request){
+        $user = Auth::user();
+        if($user instanceof Vcard){
+            $vcard = $user;
+        }
+        if($vcard){
+            if($request->page == 'all'){
+                $categories = $vcard->categories()->get();
+                return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories]);
+            }else {
+                $categories = $vcard->categories()->paginate(5);
+                return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
+            }
+        }
+        $categories = Category::paginate(15);
+        return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories, 'lastPage' => $categories->lastPage()]);
     }
 
-    public function store(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|unique:default_categories',
-            'type' => 'required|in:D,C',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid category',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $category = DefaultCategory::create([
-            'name' => $request->name,
-            'type' => $request->type,
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $category,
-        ], 201);
+    public function show(Category $category){
+        return $this->responseService->sendWithDataResponse(200, null, $category);
     }
 
-    public function storeMyCategoriesDAD(Request $request){
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|unique:default_categories',
-            'type' => 'required|in:D,C',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid category',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $category = Category::create([
-            'vcard' => Auth::user()->phone_number,
-            'name' => $request->name,
-            'type' => $request->type,
-        ]);
-
-        return $this->responseService->sendWithDataResponse(200, null, ['category' => $category]);
-    }
-
-    public function indexType(Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:D,C,all',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid type',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        if($request->type == 'all'){
-            $categories = DefaultCategory::paginate(15);
-            return response()->json([
-                'status' => 'success',
-                'data' => $categories,
-                'lastPage' => $categories->lastPage(),
-            ]);
-        }else{
-            $type = $request->query('type');
-            $categories = DefaultCategory::where('type', $type)->paginate(15);
-            return response()->json([
-                'status' => 'success',
-                'data' => $categories,
-                'lastPage' => $categories->lastPage(),
-            ]);
-        }
-
-    }
-
-    public function show(String $query, Request $request){
-
+    public function show_2(String $query, Request $request){
         $validator = Validator::make($request->all(), [
             'type' => 'required|in:D,C,all',
         ]);
@@ -146,88 +76,157 @@ class CategoryController extends Controller
 
     }
 
-    public function getAllFromVcard(Vcard $vcard){
-        //this error response is not working yet
-        if(!$vcard){
+    public function store(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|unique:default_categories',
+            'type' => 'required|in:D,C',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'vCard not found'
-            ], 404);
+                'message' => 'Invalid category',
+                'errors' => $validator->errors(),
+            ], 422);
         }
-        return $vcard->categories;
-    }
 
-    public function getMyCategoriesType(String $type){
-        $vcard = Auth::user();
-
-        $categories = $vcard->categories()->where('type', $type)->get();
-
-        return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories]);
-    }
-
-    public function getMyCategoriesDAD(){
-
-        $vcard = Auth::user();
-
-        $categories = $vcard->categories;
-
-        return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories]);
-    }
-
-    public function getMyCategories(){
-        $vcard = Auth::user();
+        $category = DefaultCategory::create([
+            'name' => $request->name,
+            'type' => $request->type,
+        ]);
 
         return response()->json([
             'status' => 'success',
-            'data' => $vcard->categories,
-        ], 200);
+            'data' => $category,
+        ], 201);
     }
+    //
+    // public function storeMyCategoriesDAD(Request $request){
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|unique:default_categories',
+    //         'type' => 'required|in:D,C',
+    //     ]);
+    //
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'Invalid category',
+    //             'errors' => $validator->errors(),
+    //         ], 422);
+    //     }
+    //
+    //     $category = Category::create([
+    //         'vcard' => Auth::user()->phone_number,
+    //         'name' => $request->name,
+    //         'type' => $request->type,
+    //     ]);
+    //
+    //     return $this->responseService->sendWithDataResponse(200, null, ['category' => $category]);
+    // }
+    //
+    // public function indexType(Request $request){
+    //
+    //     $validator = Validator::make($request->all(), [
+    //         'type' => 'required|in:D,C,all',
+    //     ]);
+    //
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'Invalid type',
+    //             'errors' => $validator->errors(),
+    //         ], 422);
+    //     }
+    //
+    //     if($request->type == 'all'){
+    //         $categories = DefaultCategory::paginate(15);
+    //         return response()->json([
+    //             'status' => 'success',
+    //             'data' => $categories,
+    //             'lastPage' => $categories->lastPage(),
+    //         ]);
+    //     }else{
+    //         $type = $request->query('type');
+    //         $categories = DefaultCategory::where('type', $type)->paginate(15);
+    //         return response()->json([
+    //             'status' => 'success',
+    //             'data' => $categories,
+    //             'lastPage' => $categories->lastPage(),
+    //         ]);
+    //     }
+    //
+    // }
+    //
+    //
+    //
+    // public function getAllFromVcard(Vcard $vcard){
+    //     //this error response is not working yet
+    //     if(!$vcard){
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'vCard not found'
+    //         ], 404);
+    //     }
+    //     return $vcard->categories;
+    // }
+    //
+    // public function getMyCategoriesDAD(){
+    //
+    //     $vcard = Auth::user();
+    //
+    //     $categories = $vcard->categories;
+    //
+    //     return $this->responseService->sendWithDataResponse(200, null, ['categories' => $categories]);
+    // }
+    //
+    // public function getMyCategories(){
+    //     $vcard = Auth::user();
+    //
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'data' => $vcard->categories,
+    //     ], 200);
+    // }
+    //
+    // public function destroyCategoriesDAD(int $id){
+    //
+    //     $validator = Validator::make(['id' => $id], [
+    //         'id' => 'required',
+    //     ]);
+    //
+    //     if($validator->fails()){
+    //         return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+    //     }
+    //
+    //     $category = DefaultCategory::find($id);
+    //
+    //     if(!$category){
+    //         return $this->errorService->sendStandardError(404, "Category not found");
+    //     }
+    //
+    //     $category->delete();
+    //
+    //     return $this->responseService->sendStandardResponse(200, "Category deleted successfully");
+    // }
+    //
+    public function destroy(Category $category){
 
-    public function destroyCategoriesDAD(int $id){
+        // $validator = Validator::make(['id' => $id], [
+        //     'id' => 'required',
+        // ]);
 
-        $validator = Validator::make(['id' => $id], [
-            'id' => 'required',
-        ]);
+        // if($validator->fails()){
+        //     return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
+        // }
 
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-        $category = DefaultCategory::find($id);
+        // $category = Category::find($id);
 
         if(!$category){
             return $this->errorService->sendStandardError(404, "Category not found");
         }
 
         $category->delete();
-
         return $this->responseService->sendStandardResponse(200, "Category deleted successfully");
     }
-
-    public function destroyMyCategoriesDAD(int $id){
-
-        $validator = Validator::make(['id' => $id], [
-            'id' => 'required',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-        $category = Category::find($id);
-
-        if(!$category){
-            return $this->errorService->sendStandardError(404, "Category not found");
-        }
-
-        $category->delete();
-
-        return $this->responseService->sendStandardResponse(200, "Category deleted successfully");
-    }
-
-
-
-
-
-
+    //
 }

@@ -17,6 +17,10 @@ class Vcard extends Authenticatable
 
     protected $dates = ['deleted_at'];
 
+    protected $fillable = [
+        'phone_number', 'name', 'email', 'password', 'max_debit', 'authorization_code', 'blocked', 'photo_url'
+    ];
+
     protected $hidden = [
         'password', 'confirmation_code', 'created_at', 'updated_at', 'deleted_at'
     ];
@@ -58,12 +62,6 @@ class Vcard extends Authenticatable
     public function getAuthIdentifierName() {
         return "phone_number";
     }
-    //
-    // public function getProfilePhoto() {
-    //     $photo = $this->photo_url;
-    //     if($photo != null){
-    //         return asset("/public/vcard_photos/".$this->photo);
-    //     }else return null;
-    // }
+
 
 }
