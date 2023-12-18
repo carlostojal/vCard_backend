@@ -47,7 +47,12 @@
 
 <h1>Transactions</h1>
 
-<h2>My Month: {{ $month }}</h2>
+@if($vcard == '')
+    <h2>Vcard: All </h2>
+@else
+    <h2>Vcard: {{ $vcard }}</h2>
+@endif
+<h2>Month: {{ $month }}</h2>
 
 <table>
     <thead>
@@ -58,7 +63,10 @@
             <th>Balance</th>
             <th>Type</th>
             <th>Payment Type</th>
-            <th>Recipient</th>
+            @if($vcard == '')
+                <th>From</th>
+            @endif
+            <th>To</th>
         </tr>
     </thead>
     <tbody>
@@ -74,6 +82,11 @@
                     <td>Debit</td>
                 @endif
                 <td>{{ $transaction['payment_type'] }}</td>
+
+                @if($vcard == '')
+                    <td>{{ $transaction['vcard'] }}</td>
+                @endif
+
                 <td>{{ $transaction['payment_reference'] }}</td>
             </tr>
         @endforeach

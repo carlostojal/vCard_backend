@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 class VcardPolicy
 {
     public function update($user, Vcard $vcard): bool{
+
         if($user instanceof User){
             $validator = Validator::make(request()->all(), [
                 'phone_number' => 'prohibited',
@@ -41,8 +42,8 @@ class VcardPolicy
             if(!$validator->fails() && $vcard->phone_number == $user->phone_number){
                 return true;
             }
-
         }
         return false;
     }
 }
+

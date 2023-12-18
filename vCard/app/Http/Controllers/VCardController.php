@@ -73,7 +73,6 @@ class VCardController extends Controller
 
     public function store(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'phone_number' => 'regex:/^(?:\+351)?9[1236]\d{7}$/',
             'password' => 'required',
@@ -219,10 +218,12 @@ class VCardController extends Controller
         return $this->errorService->sendStandardError(404, "The vcard with that phone number does not exist");
     }
 
-    public function destroy(Vcard $vcard)
+    public function destroy(?Vcard $vcard = null)
     {
+        if($vcard = null){
+            $vcard = Auth::user();
+        }
         if ($vcard) {
-
             $transactions = Transaction::where('vcard', $vcard->phone_number)->orWhere('pair_vcard', $vcard->phone_number)->get();
 
             if($vcard->balance == 0 && $transactions->count() > 0){
@@ -421,18 +422,13 @@ class VCardController extends Controller
         if($req->all() == null){
             return $this->errorService->sendStandardError(422, 'Request body was empty');
         }
+
         $this->authorize('update', $vcard);
 
-        // $vcard = Vcard::find($id);
         if(!$vcard){
             return $this->errorService->sendStandardError(404, 'vCard not found');
         }
 
-        // if($req->max_debit){
-        //     if(!Auth::check() || !Auth::user() Instanceof User){
-        //         return $this->errorService->sendStandardError(401, 'You must be an admin user to change the debit limit');
-        //     }
-        // }
         if($req->password){
             if(!$req->current_password){
                 return $this->errorService->sendStandardError(422, 'To change password, current must be provided');
@@ -443,21 +439,28 @@ class VCardController extends Controller
             if($req->password == $req->current_password){
                 return $this->errorService->sendStandardError(422, 'New password is the same as current password');
             }
+            $req->password = Hash::make($req->password);
+            $vcard->password = $req->password;
+            
         }
 
-        if($req->authorization_code){
-            if(!$req->current_authorization_code){
+        if($req->confirmation_code){
+            if(!$req->current_confirmation_code){
                 return $this->errorService->sendStandardError(422, 'To change Pin, current must be provided');
             }
-            if($req->current_authorization_code != $vcard->authorization_code){
+            if(!Hash::check($req->current_confirmation_code, $vcard->confirmation_code)){
                 return $this->errorService->sendStandardError(422, 'Wrong Authorization Code');
             }
-            if($req->authorization_code == $req->current_authorization_code){
+            if($req->confirmation_code == $req->current_confirmation_code){
                 return $this->errorService->sendStandardError(422, 'New code/pin is the same as current code/pin');
             }
+            $req->confirmation_code = Hash::make($req->confirmation_code);
+            $vcard->confirmation_code = $req->confirmation_code;
         }
 
-        $vcard->update($req->all());
+        $request = $req->except('confirmation_code');
+        $request = $req->except('password');
+        $vcard->update($request);
         $vcard->save();
 
         return $this->responseService->sendStandardResponse(200, 'vCard updated successfully');

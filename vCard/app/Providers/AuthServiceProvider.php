@@ -21,7 +21,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // Vcard::class => VcardPolicy::class,
+        Vcard::class => VcardPolicy::class,
     ];
 
     /**
