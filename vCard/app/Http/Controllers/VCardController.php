@@ -62,27 +62,7 @@ class VCardController extends Controller
     }
 
 
-    public function indexBlocked(Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'blocked' => 'required|in:all,0,1',
-        ]);
-
-        if($validator->fails()){
-            return $this->errorService->sendValidatorError(422, "Validation Failed", $validator->errors());
-        }
-
-        if($request->blocked != 'all'){
-            $vcards = Vcard::where('blocked', $request->blocked)->paginate(10);
-        }else{
-            $vcards = Vcard::paginate(10);
-        }
-        return $this->responseService->sendWithDataResponse(200, null, ['vcards' => $vcards, 'last' => $vcards->lastPage()]);
-
-    }
-
-
-    private function trimPortugueseCountryCode($phoneNumber)
+   private function trimPortugueseCountryCode($phoneNumber)
     {
         if (strpos($phoneNumber, '+351') === 0) {
             $phoneNumber = substr($phoneNumber, 4);
@@ -200,15 +180,7 @@ class VCardController extends Controller
 
 
     public function show(Vcard $vcard){
-        // $user = Auth::user();
-        // if($vcard == null){
-        //     if($user != null && $user instanceof Vcard){
-        //         $vcard = $user;
-        //     }else {
-        //         return $this->errorService->sendStandardError(404, 'User not found');
-        //     }
-        // }
-        return $this->responseService->sendWithDataResponse(200, null, $vcard);
+       return $this->responseService->sendWithDataResponse(200, null, $vcard);
     }
 
     public function show_2(string $query, Request $request)
