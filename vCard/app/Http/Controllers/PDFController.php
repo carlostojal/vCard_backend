@@ -25,18 +25,24 @@ class PDFController extends Controller
         $validator = Validator::make($request->all(), [
             'month' => 'required|integer',
             'year' => 'required|integer',
+            'vcard' => '',
         ]);
 
         if($validator->fails()){
             return $this->errorService->sendError(422, "Validation Failed", $validator->errors());
         }
 
-        $transactions = Transaction::whereMonth('date', '=', $request->month)->whereYear('date', '=', $request->year)->take(200)->get();
-
+        if($request->vcard != ''){
+            $transactions = Transaction::whereMonth('date', '=', $request->month)->whereYear('date', '=', $request->year)->where('vcard', '=', $request->vcard)->take(200)->get();
+        }else{
+            $transactions = Transaction::whereMonth('date', '=', $request->month)->whereYear('date', '=', $request->year)->take(200)->get();
+        }
+        
         $data = [
             'transactions' => $transactions,
             'month' => $request->month,
             'year' => $request->year,
+            'vcard' => $request->vcard,
         ];
 
         $pdf = PDF::loadView('my_pdf', $data);
