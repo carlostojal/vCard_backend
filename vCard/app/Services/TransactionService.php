@@ -19,6 +19,7 @@ use App\Services\ResponseService;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use App\Models\PiggyBank;
 
 class TransactionService
 {
